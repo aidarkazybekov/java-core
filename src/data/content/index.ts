@@ -1,0 +1,71 @@
+import { TopicContent } from "@/lib/types";
+
+const contentModules: Record<string, () => Promise<{ topic: TopicContent }>> = {
+  "1-1": () => import("./1-1"),
+  "1-2": () => import("./1-2"),
+  "1-3": () => import("./1-3"),
+  "1-4": () => import("./1-4"),
+  "1-5": () => import("./1-5"),
+  "2-1": () => import("./2-1"),
+  "2-2": () => import("./2-2"),
+  "2-3": () => import("./2-3"),
+  "2-4": () => import("./2-4"),
+  "2-5": () => import("./2-5"),
+  "3-1": () => import("./3-1"),
+  "3-2": () => import("./3-2"),
+  "3-3": () => import("./3-3"),
+  "3-4": () => import("./3-4"),
+  "3-5": () => import("./3-5"),
+  "3-6": () => import("./3-6"),
+  "3-7": () => import("./3-7"),
+  "3-8": () => import("./3-8"),
+  "4-1": () => import("./4-1"),
+  "4-2": () => import("./4-2"),
+  "4-3": () => import("./4-3"),
+  "4-4": () => import("./4-4"),
+  "5-1": () => import("./5-1"),
+  "5-2": () => import("./5-2"),
+  "5-3": () => import("./5-3"),
+  "5-4": () => import("./5-4"),
+  "5-5": () => import("./5-5"),
+  "6-1": () => import("./6-1"),
+  "6-2": () => import("./6-2"),
+  "6-3": () => import("./6-3"),
+  "6-4": () => import("./6-4"),
+  "6-5": () => import("./6-5"),
+  "6-6": () => import("./6-6"),
+  "6-7": () => import("./6-7"),
+  "7-1": () => import("./7-1"),
+  "7-2": () => import("./7-2"),
+  "7-3": () => import("./7-3"),
+  "7-4": () => import("./7-4"),
+  "7-5": () => import("./7-5"),
+  "7-6": () => import("./7-6"),
+  "7-7": () => import("./7-7"),
+  "8-1": () => import("./8-1"),
+  "8-2": () => import("./8-2"),
+  "8-3": () => import("./8-3"),
+  "8-4": () => import("./8-4"),
+  "8-5": () => import("./8-5"),
+  "8-6": () => import("./8-6"),
+  "8-7": () => import("./8-7"),
+  "9-1": () => import("./9-1"),
+  "9-2": () => import("./9-2"),
+  "9-3": () => import("./9-3"),
+  "9-4": () => import("./9-4"),
+  "9-5": () => import("./9-5"),
+  "10-1": () => import("./10-1"),
+  "10-2": () => import("./10-2"),
+  "10-3": () => import("./10-3"),
+  "10-4": () => import("./10-4"),
+  "10-5": () => import("./10-5"),
+};
+
+export async function getTopicContent(id: string): Promise<TopicContent | null> {
+  const loader = contentModules[id];
+  if (!loader) return null;
+  const mod = await loader();
+  return mod.topic;
+}
+
+export { contentModules };
