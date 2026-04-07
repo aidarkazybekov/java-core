@@ -40,7 +40,7 @@ src/
   data/
     roadmap.ts              # Block and topic metadata (IDs, titles, icons, prerequisites)
     content/
-      1-1.ts ... 10-5.ts    # 57 pre-loaded topic content files
+      1-1.ts ... 10-5.ts    # 58 pre-loaded topic content files
   lib/
     spaced-repetition.ts    # SM-2 algorithm implementation
     progress.ts             # localStorage read/write for completion state
@@ -71,6 +71,7 @@ interface TopicContent {
 }
 
 interface InterviewQuestion {
+  id: string;                    // Stable ID: "{topicId}-q{0-based-index}" — must not reorder after launch
   q: string;
   a: string;
   difficulty: "junior" | "mid" | "senior";
@@ -116,7 +117,7 @@ interface TopicMeta {
 
 ## Layout & Navigation
 
-### Three-Zone Layout
+### Two-Zone Layout (Sidebar + Main)
 
 ```
 +------------------+--------------------------------+
@@ -146,7 +147,7 @@ interface TopicMeta {
 - Lines connecting blocks showing progression path
 - Node states: grey (not started), blue pulse (in progress), green (completed)
 - Click node to navigate to topic detail
-- Zoom/pan on larger screens
+- Scrollable within its container (zoom/pan deferred to post-MVP)
 
 **Main Area — Topic Detail** (when topic selected):
 - Breadcrumb: Block name > Topic name
@@ -161,7 +162,7 @@ interface TopicMeta {
 SVG rendered with React components (not a library dependency). Each block is a group:
 
 - Block label (icon + title) centered above its topic nodes
-- Topic nodes arranged in a horizontal row or small grid within the block
+- Topic nodes arranged in a row (up to 5 per row; 6+ topics wrap into a 2-row grid with 16px gap)
 - Connector lines between blocks (vertical flow, top to bottom)
 - Smooth color transitions when marking topics complete
 - On hover: topic title tooltip
@@ -171,12 +172,12 @@ Node sizing: 40px diameter circles. Block clusters have subtle background cards.
 
 ### 2. Code Playground
 
-The code tab shows:
-1. **Static example** — pre-loaded, syntax-highlighted Java code (Shiki)
-2. **Editable playground** — textarea below the static example where the user can modify code
-3. **"Run" button** — sends code to an execution endpoint
+CodeTab.tsx renders the static example via Shiki and embeds CodePlayground.tsx for the editable area.
 
-For MVP, the "Run" button uses a free API like JDoodle or Compilebox. If those are unreliable, we show a "Copy to clipboard" button as fallback so the user can paste into their IDE.
+1. **Static example** — pre-loaded, syntax-highlighted Java code (Shiki, server-rendered)
+2. **Editable playground** — plain textarea below the static example (no client-side syntax highlighting for MVP)
+3. **"Run" button** — sends code to JDoodle API (free tier: ~200 executions/day, sufficient for personal use). Requires env vars `JDOODLE_CLIENT_ID` and `JDOODLE_CLIENT_SECRET`.
+4. **"Copy to clipboard" button** — always available as fallback
 
 The playground is optional — static examples work standalone.
 
@@ -190,10 +191,7 @@ Implementation of the SM-2 algorithm:
 - Badge counter on sidebar shows how many questions are due today
 - All state in localStorage — no account needed
 
-Review dashboard (accessible from sidebar):
-- Cards due today
-- Cards by difficulty distribution
-- Weak topics (blocks with lowest average scores)
+MVP review UI: a "N cards due for review" badge on the sidebar. Clicking it shows a flat list of due cards on the landing page (embedded section, not a separate route). Full review dashboard with charts and weak-topic analysis deferred to post-MVP.
 
 ### 4. Spring Connections
 
@@ -210,17 +208,18 @@ A floating input bar at the bottom of topic detail:
 - Placeholder: "Ask a follow-up question about {topic.title}..."
 - Sends to `/api/ask` which proxies to Claude with context:
   - System prompt (Java interview tutor role)
-  - Current topic content as context
+  - Context: `summary` + `deepDive` (truncated to 2000 chars if needed) + `tip`
+  - Prior Q&A pairs from this session included in conversation history
   - User's question
 - Response renders as a chat bubble above the input
-- Limited to 3 follow-ups per topic to manage API costs (configurable)
+- Limited to 3 follow-ups per topic to manage API costs (configurable, stored in component state)
+- Error handling: 15-second timeout, inline error message on failure ("Couldn't reach AI — try again"), graceful handling of missing/invalid API key (shows setup instructions)
 
 ### 6. Progress System
 
 - **Global progress bar** — top of sidebar, percentage + fraction
 - **Per-block progress rings** — circular SVG next to each block title
-- **Streak counter** — days in a row with at least one topic completed
-- **Estimated time** — based on average time per topic (rough: 15 min each)
+- **Streak counter** — consecutive days with at least one topic marked done OR one SR review completed. Date comparison uses browser's local date.
 - All persisted to localStorage
 
 ## Design Language
@@ -264,13 +263,13 @@ A floating input bar at the bottom of topic detail:
 
 | Breakpoint | Behavior |
 |------------|----------|
-| >= 1280px | Full three-zone layout |
+| >= 1280px | Full two-zone layout |
 | 768-1279px | Sidebar collapsed by default, roadmap simplified |
 | < 768px | Sidebar as drawer overlay, single-column content, roadmap as vertical list |
 
 ## Content Generation Plan
 
-All 57 topics get pre-loaded content files. Structure per file:
+All 58 topics get pre-loaded content files. Structure per file:
 
 1. **Summary** — What it is, why it matters (2-3 sentences)
 2. **Deep dive** — Internals, gotchas, interview-relevant depth (3-5 paragraphs)
@@ -281,7 +280,7 @@ All 57 topics get pre-loaded content files. Structure per file:
 
 Content is generated by Claude during build, reviewed, and committed as static TypeScript files.
 
-## Roadmap Blocks & Topics (57 total)
+## Roadmap Blocks & Topics (58 total)
 
 | # | Block | Topics |
 |---|-------|--------|
@@ -299,7 +298,7 @@ Content is generated by Claude during build, reviewed, and committed as static T
 ## Scope Boundaries
 
 **In scope (MVP):**
-- All 57 topics with pre-loaded content
+- All 58 topics with pre-loaded content
 - Visual roadmap graph
 - Sidebar tree navigation
 - Four content tabs (Learn, Code, Interview, Spring)
