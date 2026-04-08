@@ -129,6 +129,138 @@ export const ROADMAP: Block[] = [
       { id: "10-5", title: "Serialization" },
     ],
   },
+  {
+    id: 11,
+    icon: "🌱",
+    title: "Spring Core",
+    topics: [
+      { id: "11-1", title: "IoC & Dependency Injection" },
+      { id: "11-2", title: "ApplicationContext & BeanFactory" },
+      { id: "11-3", title: "Bean Lifecycle" },
+      { id: "11-4", title: "Bean Scopes" },
+      { id: "11-5", title: "BPP & BFPP" },
+      { id: "11-6", title: "Configuration Methods" },
+    ],
+  },
+  {
+    id: 12,
+    icon: "🚀",
+    title: "Spring Boot",
+    topics: [
+      { id: "12-1", title: "@SpringBootApplication" },
+      { id: "12-2", title: "Starters & Auto-configuration" },
+      { id: "12-3", title: "Profiles" },
+      { id: "12-4", title: "Multiple Bean Injection" },
+    ],
+  },
+  {
+    id: 13,
+    icon: "🌐",
+    title: "Spring MVC",
+    topics: [
+      { id: "13-1", title: "Request Lifecycle" },
+      { id: "13-2", title: "Controllers & Annotations" },
+      { id: "13-3", title: "Validation" },
+      { id: "13-4", title: "File Upload & Properties" },
+    ],
+  },
+  {
+    id: 14,
+    icon: "🗄️",
+    title: "Spring Data JPA",
+    topics: [
+      { id: "14-1", title: "Entity & Relationships" },
+      { id: "14-2", title: "Repository Pattern" },
+      { id: "14-3", title: "Persistence Context & Entity Lifecycle" },
+      { id: "14-4", title: "Transactions & @Transactional" },
+      { id: "14-5", title: "N+1 Problem & Optimization" },
+    ],
+  },
+  {
+    id: 15,
+    icon: "🔒",
+    title: "Spring Security & AOP",
+    topics: [
+      { id: "15-1", title: "Spring Security & JWT" },
+      { id: "15-2", title: "Spring AOP" },
+      { id: "15-3", title: "Spring Cache" },
+    ],
+  },
+  {
+    id: 16,
+    icon: "🔗",
+    title: "REST & HTTP",
+    topics: [
+      { id: "16-1", title: "REST Principles" },
+      { id: "16-2", title: "HTTP Methods & Status Codes" },
+      { id: "16-3", title: "Request/Response Structure" },
+      { id: "16-4", title: "RestTemplate & WebClient" },
+    ],
+  },
+  {
+    id: 17,
+    icon: "💾",
+    title: "Databases & SQL",
+    topics: [
+      { id: "17-1", title: "Normalization & Denormalization" },
+      { id: "17-2", title: "Indexes & Joins" },
+      { id: "17-3", title: "SQL Commands (DDL, DML, DCL)" },
+      { id: "17-4", title: "Transactions & ACID" },
+      { id: "17-5", title: "Isolation Levels" },
+    ],
+  },
+  {
+    id: 18,
+    icon: "📨",
+    title: "Kafka & Redis",
+    topics: [
+      { id: "18-1", title: "Kafka Fundamentals" },
+      { id: "18-2", title: "Kafka Components & Guarantees" },
+      { id: "18-3", title: "Redis Fundamentals" },
+      { id: "18-4", title: "Redis Data Structures" },
+    ],
+  },
+  {
+    id: 19,
+    icon: "🧪",
+    title: "Testing",
+    topics: [
+      { id: "19-1", title: "Testing Types & Pyramid" },
+      { id: "19-2", title: "TDD & BDD" },
+      { id: "19-3", title: "JUnit & Mockito" },
+    ],
+  },
+  {
+    id: 20,
+    icon: "🔧",
+    title: "Git & Linux",
+    topics: [
+      { id: "20-1", title: "Git Commands & Workflow" },
+      { id: "20-2", title: "Linux Commands" },
+      { id: "20-3", title: "Maven" },
+    ],
+  },
+  {
+    id: 21,
+    icon: "🏗️",
+    title: "Data Structures",
+    topics: [
+      { id: "21-1", title: "Arrays & Linked Lists" },
+      { id: "21-2", title: "Stacks & Queues" },
+      { id: "21-3", title: "Trees & Graphs" },
+      { id: "21-4", title: "Hash Tables" },
+    ],
+  },
+  {
+    id: 22,
+    icon: "☕",
+    title: "Java EE",
+    topics: [
+      { id: "22-1", title: "Java EE Specifications" },
+      { id: "22-2", title: "Servlets & JSP" },
+      { id: "22-3", title: "Why Spring Uses Java EE" },
+    ],
+  },
 ];
 
 export const TOTAL_TOPICS = ROADMAP.reduce((sum, block) => sum + block.topics.length, 0);
