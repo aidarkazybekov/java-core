@@ -5,8 +5,10 @@ export const topic: TopicContent = {
   blockId: 1,
   title: "JDK vs JRE vs JVM",
   summary:
+    "JVM исполняет байт-код Java. JRE -- минимально-необходимая реализация виртуальной машины для исполнения Java-приложения (JVM + стандартные библиотеки). JDK -- среда для разработки, включающая JRE и компилятор (javac). Коротко: JDK содержит JRE, которая содержит JVM. С Java 11 отдельный JRE больше не поставляется.\n\n---\n\n" +
     "JDK, JRE, and JVM are nested layers of the Java platform. Confusing them is a red flag in interviews. The JDK is for development (compiler + tools + JRE), the JRE is for running apps (libraries + JVM), and the JVM is the actual bytecode execution engine. Since Java 11, the JRE is no longer distributed separately.",
   deepDive:
+    "**JVM** (Java Virtual Machine) -- исполняет байт-код Java, предварительно созданный из исходного текста Java-программы компилятором Java (javac). JVM может также использоваться для выполнения программ, написанных на других языках программирования. **JRE** (Java Runtime Environment) -- минимально-необходимая реализация виртуальной машины для исполнения Java-приложения. Состоит из JVM и стандартных библиотек java-классов. **JDK** (Java Development Kit) -- JRE и компилятор. Коротко: JDK -- среда для разработки программ на Java, включающая в себя JRE -- среду для обеспечения запуска Java программ, которая в свою очередь содержит JVM -- интерпретатор кода Java программ.\n\n---\n\n" +
     "The Java Virtual Machine (JVM) is a specification that defines how bytecode is executed. It is an abstract machine — HotSpot, OpenJ9, GraalVM, and Azul Zing are all different implementations. The JVM handles class loading, memory management, garbage collection, and bytecode execution. It does NOT include the standard library or development tools.\n\n" +
     "The Java Runtime Environment (JRE) bundles the JVM with the Java Class Library (rt.jar / modules), supporting files, and deployment tools. Before Java 11, you could install just the JRE on servers that only needed to run compiled applications. Since Java 11, Oracle stopped shipping a separate JRE — you get the full JDK, and you can use `jlink` to create custom minimal runtimes for your application.\n\n" +
     "The Java Development Kit (JDK) includes everything in the JRE plus development tools: `javac` (compiler), `javap` (disassembler), `jdb` (debugger), `jconsole` / `jvisualvm` (monitoring), `jmap` / `jstack` / `jstat` (diagnostics), and `jlink` (custom runtime images). When you install 'Java' for development, you install the JDK. The relationship is: JDK contains JRE contains JVM.\n\n" +
@@ -68,8 +70,15 @@ public class JavaPlatformInfo {
       a: "HotSpot (OpenJDK/Oracle) is the default — battle-tested, well-documented, and the baseline for most applications. Eclipse OpenJ9 (IBM) has a smaller memory footprint and faster startup than HotSpot, making it attractive for containerized microservices where memory is constrained and cold start matters. GraalVM offers ahead-of-time (AOT) compilation to native binaries via native-image, giving near-instant startup and reduced memory but with limitations on reflection and dynamic class loading. For a Spring Boot microservice in Kubernetes with tight memory limits and frequent scaling, OpenJ9 or GraalVM native-image can be significantly better than HotSpot. For a long-running monolith where peak throughput matters, HotSpot with its mature C2 JIT is usually the best choice.",
       difficulty: "senior",
     },
+    {
+      id: "1-2-q3",
+      q: "Что такое JRE, JVM и JDK? Как они связаны?",
+      a: "JVM (Java Virtual Machine) -- исполняет байт-код Java, предварительно созданный компилятором javac. JRE (Java Runtime Environment) -- минимально-необходимая реализация виртуальной машины для исполнения Java-приложения, состоит из JVM и стандартных библиотек java-классов. JDK (Java Development Kit) -- включает JRE и компилятор. Коротко: JDK -- среда для разработки, JRE -- среда для запуска, JVM -- интерпретатор байт-кода.",
+      difficulty: "junior",
+    },
   ],
-  tip: "Since Java 11, if someone asks about the JRE, clarify that it no longer ships separately. Mentioning jlink for custom runtimes in containers shows you understand modern Java deployment.",
+  tip: "Запомните вложенность: JDK содержит JRE, а JRE содержит JVM. С Java 11 отдельный JRE больше не поставляется -- используйте jlink для создания минимальных рантаймов в контейнерах.\n\n---\n\n" +
+    "Since Java 11, if someone asks about the JRE, clarify that it no longer ships separately. Mentioning jlink for custom runtimes in containers shows you understand modern Java deployment.",
   springConnection: {
     concept: "JDK vs JRE in deployment",
     springFeature: "Spring Boot Docker Images & GraalVM Native Image",

@@ -5,8 +5,10 @@ export const topic: TopicContent = {
   blockId: 1,
   title: "JVM Architecture",
   summary:
+    "JVM (Java Virtual Machine) -- виртуальная машина, исполняющая байт-код Java. Она является ядром платформы Java: загрузка классов, управление памятью (Heap, Metaspace, Stack), сборка мусора и JIT-компиляция -- все это происходит внутри JVM. Понимание архитектуры JVM критично для диагностики проблем производительности и утечек памяти.\n\n---\n\n" +
     "The JVM is the runtime engine that executes Java bytecode. Understanding its internal architecture — class loading, memory areas, and the execution engine — is foundational to debugging performance issues, memory leaks, and understanding why Java behaves the way it does in production.",
   deepDive:
+    "JVM -- это абстрактная вычислительная машина, которая исполняет байт-код Java. Она состоит из трех основных подсистем: подсистема загрузки классов (ClassLoader), области данных времени выполнения (Runtime Data Areas) и механизм исполнения (Execution Engine). Области памяти: Method Area (Metaspace с Java 8) хранит метаданные классов, Heap -- все объекты, каждый поток имеет свой Stack, PC Register и Native Method Stack. Heap делится на Young Generation (Eden + Survivor) и Old Generation для настройки сборки мусора.\n\n---\n\n" +
     "The JVM is an abstract computing machine with three major subsystems: the Class Loader Subsystem, the Runtime Data Areas, and the Execution Engine. When you run `java MyApp`, the JVM bootstrap sequence initializes these subsystems, loads your class, and begins executing bytecode.\n\n" +
     "Runtime Data Areas are where most interview questions focus. The Method Area (Metaspace since Java 8) stores class metadata, constant pools, and static variables — it is shared across all threads. The Heap is the shared memory region where all object instances live, managed by the garbage collector. Each thread gets its own PC Register (tracking the current bytecode instruction), JVM Stack (holding frames for each method call with local variables and operand stacks), and Native Method Stack (for JNI calls). A critical gotcha: local variables live on the stack, but if a local variable references an object, the object itself is on the heap.\n\n" +
     "The Execution Engine reads bytecode from the method area and executes it. It contains the Interpreter (executes bytecode line by line — slow but starts fast), the JIT Compiler (compiles hot bytecode paths into native machine code for speed), and the Garbage Collector. The interplay between interpreter and JIT is why Java apps warm up over time — initial requests are slow, then performance improves as hot paths get compiled.\n\n" +
@@ -72,7 +74,8 @@ public class JvmArchitectureDemo {
       difficulty: "senior",
     },
   ],
-  tip: "When you hear 'where does X live in memory?', think: static/class metadata -> Metaspace, objects -> Heap, local variable references -> Stack (but the object they point to is still on the heap).",
+  tip: "Когда слышите вопрос 'где X живет в памяти?', думайте так: статика/метаданные классов -> Metaspace, объекты -> Heap, локальные переменные-ссылки -> Stack (но объект, на который они указывают, все равно в Heap).\n\n---\n\n" +
+    "When you hear 'where does X live in memory?', think: static/class metadata -> Metaspace, objects -> Heap, local variable references -> Stack (but the object they point to is still on the heap).",
   springConnection: {
     concept: "JVM Memory Areas",
     springFeature: "Spring Application Context & Bean Scopes",

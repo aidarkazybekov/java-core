@@ -5,8 +5,10 @@ export const topic: TopicContent = {
   blockId: 1,
   title: "Bytecode & Compilation",
   summary:
+    "Исходный код Java компилируется компилятором javac (входит в JDK) в платформо-независимый байт-код (.class файлы), а не в нативный машинный код. Именно байт-код обеспечивает принцип 'write once, run anywhere' -- JVM на любой платформе может его исполнить.\n\n---\n\n" +
     "Java source code compiles to platform-independent bytecode (.class files), not native machine code. This intermediate representation is what makes 'write once, run anywhere' work. Understanding bytecode helps you reason about performance, decompilation, and what the JVM actually executes.",
   deepDive:
+    "Компилятор javac преобразует .java файлы в .class файлы, содержащие байт-код -- стековый набор инструкций для JVM. Каждый .class файл имеет точный бинарный формат: magic number (0xCAFEBABE), версия, constant pool, поля, методы и атрибуты. Ключевые инструкции байт-кода: invokevirtual, invokestatic, invokespecial, invokeinterface и invokedynamic (для лямбд с Java 8). Компилятор выполняет минимум оптимизаций -- основная оптимизация (inlining, escape analysis) происходит в JIT компиляторе во время выполнения.\n\n---\n\n" +
     "The `javac` compiler transforms `.java` source files into `.class` files containing bytecode — a stack-based instruction set designed for the JVM. Bytecode is not human-readable machine code; it is an intermediate representation that any JVM implementation can execute. Each `.class` file has a precise binary format: magic number (0xCAFEBABE), version info, constant pool, access flags, class/interface info, fields, methods, and attributes.\n\n" +
     "You can inspect bytecode using `javap -c MyClass` (disassembler bundled with JDK). Key bytecode instructions include: `aload/astore` (load/store object references), `iload/istore` (load/store ints), `invokevirtual` (instance method calls with polymorphism), `invokeinterface` (interface method calls), `invokestatic` (static calls), `invokespecial` (constructors, super calls, private methods), and `invokedynamic` (lambdas, string concatenation since Java 9). Understanding these helps you see what the JVM really does with your code.\n\n" +
     "A critical compilation detail: the compiler performs very few optimizations. Things like constant folding and dead code elimination happen at compile time, but almost all serious optimization (inlining, loop unrolling, escape analysis, lock elision) is deferred to the JIT compiler at runtime. This is deliberate — the JIT has runtime profiling data that the static compiler does not, allowing it to make better optimization decisions.\n\n" +
@@ -77,7 +79,8 @@ public class BytecodeDemo {
       difficulty: "senior",
     },
   ],
-  tip: "Run `javap -c -p YourClass` on any code you are curious about. Seeing the actual bytecode for autoboxing, lambdas, and string concatenation demystifies Java and gives you ammunition for interviews.",
+  tip: "Используйте команду `javap -c -p YourClass` для просмотра байт-кода любого класса. Это поможет понять, как работают autoboxing, лямбды и конкатенация строк на уровне JVM.\n\n---\n\n" +
+    "Run `javap -c -p YourClass` on any code you are curious about. Seeing the actual bytecode for autoboxing, lambdas, and string concatenation demystifies Java and gives you ammunition for interviews.",
   springConnection: {
     concept: "Bytecode generation",
     springFeature: "Spring AOP & CGLIB Proxies",

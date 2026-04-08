@@ -5,8 +5,10 @@ export const topic: TopicContent = {
   blockId: 2,
   title: "Operators & Casting",
   summary:
+    "Java является строго типизированным языком, но определен механизм приведения типов (casting). Виды: тождественное (identity), расширение (upcasting) примитивного/объектного типа, сужение (downcasting) примитивного/объектного типа, преобразование к строке. Для проверки возможности приведения используется оператор instanceof. ClassCastException -- ошибка приведения типа.\n\n---\n\n" +
     "Java's operators and type casting rules are full of non-obvious behavior that trips up even experienced developers. Widening vs narrowing conversions, integer promotion rules, and the quirks of == vs equals() are interview staples that reveal whether you truly understand the type system.",
   deepDive:
+    "Java является строго типизированным языком программирования -- каждая переменная имеет строго определенный тип на момент компиляции. Однако определен механизм приведения типов (casting) -- способ преобразования значения переменной одного типа в значение другого типа. В Java существуют несколько разновидностей приведения: тождественное (identity) -- преобразование к такому же типу; расширение (повышение, upcasting) примитивного типа -- переход от менее емкого к более емкому; сужение (понижение, downcasting) примитивного типа; расширение и сужение объектного типа; преобразование к строке. Для проверки возможности приведения нужно использовать оператор instanceof. ClassCastException (потомок RuntimeException) -- ошибка приведения типа.\n\n---\n\n" +
     "Java performs implicit widening conversions (smaller type to larger type) automatically: byte -> short -> int -> long -> float -> double. Narrowing conversions (larger to smaller) require an explicit cast and can lose data. A subtle trap: `int` to `float` is a widening conversion but can lose precision — int has 32 bits of precision while float only has 24 bits of mantissa. So `(float) 16_777_217` becomes `16_777_216.0`. Similarly, `long` to `double` can lose precision for values above 2^53.\n\n" +
     "Integer promotion rules: in arithmetic expressions, byte, short, and char are always promoted to int before the operation. This is why `byte a = 1; byte b = 2; byte c = a + b;` does not compile — `a + b` produces an int. You need `byte c = (byte)(a + b);`. This promotion also affects compound assignment: `a += b` compiles because compound assignment operators include an implicit cast. So `byte a = 127; a += 1;` silently overflows to -128 without a compile error — a subtle bug.\n\n" +
     "The `==` operator compares primitives by value but objects by reference. For String literals, `==` appears to work because of the string pool — `\"hello\" == \"hello\"` is true because both point to the same interned object. But `new String(\"hello\") == \"hello\"` is false. For wrapper types, `==` works within the cache range (-128 to 127 for Integer) and fails outside it. Always use `.equals()` for object comparison.\n\n" +
@@ -92,8 +94,15 @@ export const topic: TopicContent = {
       a: "Pattern matching instanceof (Java 16+) introduces a binding variable whose scope is determined by flow analysis — the variable is only in scope where the compiler can guarantee the pattern matched. `if (obj instanceof String s)` makes `s` available in the if-block. With negation: `if (!(obj instanceof String s)) return;` — after the if, `s` is in scope because the only way to reach that point is if instanceof succeeded. In boolean expressions, `&&` propagates the match: `obj instanceof String s && s.length() > 5` works because `s` is only evaluated if the instanceof succeeded. But `||` does NOT: `obj instanceof String s || s.isEmpty()` is illegal because on the right side of `||`, the instanceof might have failed. This flow-sensitive scoping also applies to switch pattern matching (Java 21) and record patterns, where you can deconstruct record components in a single expression.",
       difficulty: "senior",
     },
+    {
+      id: "2-3-q3",
+      q: "Какие виды приведения типов существуют в Java?",
+      a: "В Java существуют следующие разновидности приведения типов: тождественное (identity) -- преобразование к такому же типу; расширение (повышение, upcasting) примитивного типа -- переход от менее емкого к более емкому (byte -> short -> int -> long -> float -> double); сужение (понижение, downcasting) примитивного типа -- требует явного приведения и может потерять данные; расширение объектного типа (приведение к родительскому классу); сужение объектного типа (приведение к дочернему классу); преобразование к строке. Для проверки возможности приведения объектного типа используется instanceof. При невозможном приведении выбрасывается ClassCastException.",
+      difficulty: "junior",
+    },
   ],
-  tip: "The compound assignment operators (+=, *=, etc.) include a hidden cast. `short s = 32767; s += 1;` compiles without error and silently overflows. This is a favorite trick question.",
+  tip: "Составные операторы присваивания (+=, *=, и т.д.) содержат скрытое приведение типа. `short s = 32767; s += 1;` компилируется без ошибки и молча переполняется. Это любимый трюковый вопрос на собеседованиях.\n\n---\n\n" +
+    "The compound assignment operators (+=, *=, etc.) include a hidden cast. `short s = 32767; s += 1;` compiles without error and silently overflows. This is a favorite trick question.",
   springConnection: {
     concept: "Type casting and instanceof",
     springFeature: "Spring type conversion and ConversionService",

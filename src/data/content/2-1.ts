@@ -5,8 +5,10 @@ export const topic: TopicContent = {
   blockId: 2,
   title: "Primitive Types & Wrappers",
   summary:
+    "В Java 8 примитивных типов: boolean (1 бит), byte (1 байт, -128..127), short (2 байта), int (4 байта), long (8 байт), float (4 байта), double (8 байт), char (2 байта, UTF-16). Autoboxing -- механизм неявной упаковки примитива в класс-обертку. Целочисленные обертки кэшируются JVM в диапазоне -128..+127.\n\n---\n\n" +
     "Java has 8 primitive types that live on the stack and their corresponding wrapper classes that live on the heap. The interplay between primitives and wrappers — autoboxing, caching, null handling, and equality semantics — is a minefield of subtle bugs and a favorite interview topic.",
   deepDive:
+    "**Примитивные типы данных в Java:** boolean (true/false, 1 бит); целочисленные: byte (-128..127, 1 байт), short (-32768..32767, 2 байта), int (+/-2.1*10^9, 4 байта), long (+/-9.2e18, 8 байт); с плавающей точкой: float (4 байта), double (8 байт); символ: char (одиночный символ UTF-16, 2 байта). **Autoboxing** -- механизм неявной инициализации объектов классов-оберток значениями соответствующих примитивных типов, без явного использования конструктора класса. Дополнительная особенность: целочисленные классы-обертки, созданные автоупаковкой в диапазоне -128..+127, кэшируются JVM.\n\n---\n\n" +
     "Java's 8 primitives are: `byte` (8-bit, -128 to 127), `short` (16-bit), `int` (32-bit), `long` (64-bit), `float` (32-bit IEEE 754), `double` (64-bit IEEE 754), `char` (16-bit unsigned Unicode), and `boolean`. They are stored directly on the stack (or inlined in objects on the heap) with no object overhead. Wrapper classes (Byte, Short, Integer, Long, Float, Double, Character, Boolean) are full objects on the heap with ~16 bytes overhead each.\n\n" +
     "Autoboxing (primitive -> wrapper) and unboxing (wrapper -> primitive) were added in Java 5. The compiler silently inserts `Integer.valueOf(n)` for boxing and `intObj.intValue()` for unboxing. The trap: unboxing a null wrapper throws NullPointerException. This is the number one source of autoboxing bugs — `Integer x = null; int y = x;` compiles cleanly but throws NPE at runtime.\n\n" +
     "The Integer cache is essential interview knowledge. `Integer.valueOf(n)` caches instances for values -128 to 127 (configurable upward via -XX:AutoBoxCacheMax). This means `Integer.valueOf(100) == Integer.valueOf(100)` is `true`, but `Integer.valueOf(200) == Integer.valueOf(200)` is `false`. Always use `.equals()` for wrapper comparison, never `==`. The same caching applies to Byte, Short, Long (-128 to 127), Character (0 to 127), and Boolean (always cached).\n\n" +
@@ -95,8 +97,21 @@ export const topic: TopicContent = {
       a: "An int[] stores 4 bytes per element contiguously in memory with one object header (~16 bytes overhead total). A List<Integer> stores references (~4-8 bytes each) to Integer objects (each ~16 bytes with object header + 4 bytes for the int value + padding), so roughly 5-6x more memory per element plus poor cache locality due to pointer chasing. In benchmarks, primitive arrays outperform boxed collections by 3-10x. Alternatives: primitive-specialized collections from Eclipse Collections (IntArrayList, IntIntHashMap), Koloboke, or HPPC. Project Valhalla's value types (expected in future Java) will allow `List<int>` directly, eliminating boxing while keeping the Collections API. For now, IntStream and primitive arrays cover most performance-sensitive cases.",
       difficulty: "senior",
     },
+    {
+      id: "2-1-q3",
+      q: "Перечислите примитивные типы данных в Java и их размеры.",
+      a: "В Java 8 примитивных типов: boolean (true/false, 1 бит); целочисленные: byte (-128..127, 1 байт), short (-32768..32767, 2 байта), int (+/-2.1*10^9, 4 байта), long (+/-9.2e18, 8 байт); с плавающей точкой: float (4 байта), double (8 байт); символ: char (одиночный символ в кодировке UTF-16, 2 байта).",
+      difficulty: "junior",
+    },
+    {
+      id: "2-1-q4",
+      q: "Что такое autoboxing и в чем особенность кэширования оберток?",
+      a: "Autoboxing -- это механизм неявной инициализации объектов классов-оберток (Integer, Long и т.д.) значениями соответствующих примитивных типов, без явного использования конструктора класса. Автоматическое обертывание примитива в класс-обертку. Дополнительная особенность: целочисленные классы-обертки, созданные автоупаковкой констант в диапазоне -128..+127, кэшируются JVM. Поэтому Integer.valueOf(127) == Integer.valueOf(127) вернет true, а Integer.valueOf(128) == Integer.valueOf(128) вернет false.",
+      difficulty: "mid",
+    },
   ],
-  tip: "When you see Long, Integer, or Double as a loop accumulator variable, it is almost always a bug. Use the primitive type (long, int, double) to avoid creating millions of garbage wrapper objects.",
+  tip: "Если видите Long, Integer или Double как переменную-аккумулятор в цикле -- это почти всегда ошибка. Используйте примитивный тип (long, int, double), чтобы избежать создания миллионов мусорных объектов-оберток.\n\n---\n\n" +
+    "When you see Long, Integer, or Double as a loop accumulator variable, it is almost always a bug. Use the primitive type (long, int, double) to avoid creating millions of garbage wrapper objects.",
   springConnection: {
     concept: "Autoboxing and null primitives",
     springFeature: "Spring Data JPA entity mapping",

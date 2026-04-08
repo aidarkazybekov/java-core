@@ -5,8 +5,10 @@ export const topic: TopicContent = {
   blockId: 2,
   title: "Arrays",
   summary:
+    "Массивы -- базовая структура данных Java: фиксированный размер, типобезопасность, непрерывное размещение в куче (heap). Массивы примитивов хранятся без упаковки (boxing), что дает значительный выигрыш по памяти и производительности по сравнению с коллекциями оберток. Ковариантность массивов -- известная проблема дизайна Java.\n\n---\n\n" +
     "Arrays are Java's most fundamental data structure — fixed-size, type-safe, and stored contiguously in heap memory. Understanding how arrays work at the memory level, their covariance problem, and their relationship to generics explains many design decisions in the Collections framework.",
   deepDive:
+    "Массивы в Java -- это объекты, живущие в heap, даже массивы примитивов. int[100] -- непрерывный блок из 400 байт (плюс заголовок объекта) без boxing и pointer chasing. Длина массива фиксируется при создании. Ковариантность массивов (String[] является подтипом Object[]) нарушает типобезопасность во время выполнения -- ArrayStoreException. Многомерные массивы в Java -- это массивы массивов (jagged arrays), а не настоящие прямоугольные матрицы.\n\n---\n\n" +
     "Arrays in Java are objects that live on the heap, even arrays of primitives. An `int[100]` is a single contiguous block of 400 bytes (plus object header) on the heap — no boxing, no pointer chasing. This is why primitive arrays vastly outperform `List<Integer>` for number crunching. Array length is fixed at creation and stored in the object header. Accessing `.length` is an O(1) field read, not a method call.\n\n" +
     "Array covariance is a well-known design mistake in Java. `String[]` is a subtype of `Object[]`, which seems logical but breaks type safety at runtime. You can assign a `String[]` to an `Object[]` reference and then store an `Integer` in it — this compiles fine but throws `ArrayStoreException` at runtime. Generics were designed to avoid this mistake: `List<String>` is NOT a subtype of `List<Object>`. This is why Java generics use wildcards (`List<? extends Object>`) instead of covariance.\n\n" +
     "Multi-dimensional arrays in Java are actually arrays of arrays (jagged arrays), not true rectangular matrices. `int[][] matrix = new int[3][4]` creates 4 objects: one `int[][]` of length 3, and three `int[]` of length 4 each. Each row can have a different length: `matrix[0] = new int[10]` is valid. This has performance implications — accessing `matrix[i][j]` involves two pointer dereferences and poor cache locality compared to a flat `int[rows * cols]` array.\n\n" +
@@ -110,6 +112,7 @@ public class ArraysDemo {
       difficulty: "senior",
     },
   ],
-  tip: "Arrays.asList(int[]) creates a List<int[]> with one element, not a List<Integer>. For primitives, use Arrays.stream(intArray).boxed().toList() or IntStream.of(intArray).boxed().toList().",
+  tip: "Arrays.asList(int[]) создает List<int[]> с одним элементом, а не List<Integer>. Для примитивов используйте Arrays.stream(intArray).boxed().toList() или IntStream.of(intArray).boxed().toList().\n\n---\n\n" +
+    "Arrays.asList(int[]) creates a List<int[]> with one element, not a List<Integer>. For primitives, use Arrays.stream(intArray).boxed().toList() or IntStream.of(intArray).boxed().toList().",
   springConnection: null,
 };

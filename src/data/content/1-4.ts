@@ -5,8 +5,10 @@ export const topic: TopicContent = {
   blockId: 1,
   title: "ClassLoaders & Delegation",
   summary:
+    "ClassLoader -- подсистема JVM, отвечающая за загрузку .class файлов. Загрузчики классов следуют модели делегирования родителю (parent-delegation), гарантируя, что базовые классы Java загружаются доверенными загрузчиками. Понимание ClassLoader объясняет разницу между ClassNotFoundException и NoClassDefFoundError.\n\n---\n\n" +
     "ClassLoaders are responsible for finding and loading .class files into the JVM. They follow a parent-delegation model that ensures core Java classes are loaded by trusted loaders first. Understanding classloaders explains why you get ClassNotFoundException vs NoClassDefFoundError, and why app servers and module systems work the way they do.",
   deepDive:
+    "Каждый класс в Java загружается экземпляром ClassLoader. JVM имеет три встроенных загрузчика: Bootstrap (загружает базовые классы JDK, написан на нативном коде), Platform (ранее Extension -- загружает модули платформы) и Application (загружает классы из classpath). Модель делегирования: Application -> Platform -> Bootstrap. Если все три не нашли класс -- ClassNotFoundException. ClassLoader критически важен в серверах приложений (Tomcat использует child-first загрузку для изоляции веб-приложений).\n\n---\n\n" +
     "Every class in Java is loaded by a ClassLoader instance. The JVM ships with three built-in loaders forming a hierarchy: the Bootstrap ClassLoader (loads core JDK classes from java.base module — written in native code, returns null when you call `getClassLoader()` on java.lang.String), the Platform ClassLoader (formerly Extension ClassLoader — loads platform/extension modules), and the Application ClassLoader (loads classes from the classpath — your application code).\n\n" +
     "The parent-delegation model is the critical concept. When asked to load a class, a classloader first delegates to its parent. Only if the parent cannot find the class does the child attempt to load it. This ensures that core classes like `java.lang.Object` are always loaded by the Bootstrap loader, preventing malicious code from replacing core classes. The delegation chain is: Application -> Platform -> Bootstrap. If all three fail, you get ClassNotFoundException.\n\n" +
     "ClassNotFoundException vs NoClassDefFoundError is a classic interview question. ClassNotFoundException is a checked exception thrown when you explicitly try to load a class by name (Class.forName(), ClassLoader.loadClass()) and it is not found. NoClassDefFoundError is an Error thrown when the JVM/classloader had previously found the class (it was available at compile time) but cannot load it at runtime — usually because a dependency JAR is missing from the classpath or static initialization failed.\n\n" +
@@ -105,7 +107,8 @@ public class ClassLoaderDemo {
       difficulty: "senior",
     },
   ],
-  tip: "If getClassLoader() returns null, the class was loaded by the Bootstrap classloader. This is not a bug — the Bootstrap loader is native code and has no Java representation.",
+  tip: "Если getClassLoader() возвращает null, класс был загружен Bootstrap-загрузчиком. Это не ошибка -- Bootstrap написан на нативном коде и не имеет Java-представления.\n\n---\n\n" +
+    "If getClassLoader() returns null, the class was loaded by the Bootstrap classloader. This is not a bug — the Bootstrap loader is native code and has no Java representation.",
   springConnection: {
     concept: "ClassLoader isolation and delegation",
     springFeature: "Spring Boot DevTools & Restart ClassLoader",

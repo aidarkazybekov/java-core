@@ -5,8 +5,10 @@ export const topic: TopicContent = {
   blockId: 2,
   title: "Control Flow",
   summary:
+    "Виды циклов: циклы с предусловием (while -- условие проверяется перед первой итерацией), циклы с постусловием (do-while -- выполняется минимум один раз), циклы со счетчиком (for -- количество итераций определяется счетчиком). Современная Java также предлагает switch-выражения (Java 14+), pattern matching в switch (Java 21+), labeled breaks и enhanced for-loop.\n\n---\n\n" +
     "Control flow in Java goes beyond basic if/else and for loops. Switch expressions, labeled breaks, enhanced for-loops, and the behavior of short-circuit evaluation have subtle implications. Modern Java (17+) adds pattern matching in switch, making this a richer and more interview-relevant topic than you might expect.",
   deepDive:
+    "**Какие виды циклов существуют?** Циклы с предусловием (while): условие выполнения определяется перед первой итерацией. Циклы с постусловием (do-while): условие определяется после первой итерации, поэтому они всегда выполняются минимум один раз. Циклы со счетчиком (for): количество итераций определяется смоделированным счетчиком -- в условии задается начальное и конечное значение. Enhanced for-loop (for-each) компилируется в вызовы Iterator. Switch-выражения (Java 14+) используют стрелочный синтаксис без fall-through и могут возвращать значение.\n\n---\n\n" +
     "The classic control flow structures are if/else, for, while, do-while, and switch. But interviewers focus on the non-obvious parts. The enhanced for-loop (`for (String s : collection)`) compiles to an Iterator pattern — it calls `iterator()`, then `hasNext()` and `next()` in a while loop. This means you cannot remove elements during enhanced-for iteration without ConcurrentModificationException. Use `Iterator.remove()` or `Collection.removeIf()` instead.\n\n" +
     "Switch has evolved dramatically. Traditional switch has fall-through by default (every case needs a break), which is a common bug source. Switch expressions (Java 14+) use arrow syntax (`case X ->`) with no fall-through and can return a value: `int result = switch(x) { case 1 -> 10; case 2 -> 20; default -> 0; };`. They must be exhaustive (cover all cases or have a default). Multi-line cases use `yield` to return a value. Pattern matching in switch (Java 21+) allows `case String s ->` and `case Integer i when i > 0 ->` (guarded patterns), enabling powerful type-based dispatch.\n\n" +
     "Labeled breaks and continues are underused but powerful for nested loops. `outer: for (...)  { for (...) { if (condition) break outer; } }` breaks out of the outer loop. Without labels, `break` only exits the innermost loop. Labeled breaks also work on labeled blocks: `block: { if (condition) break block; /* skipped */ }`. This is sometimes used as a structured alternative to early return in complex validation logic.\n\n" +
@@ -108,7 +110,14 @@ export const topic: TopicContent = {
       a: "Switch pattern matching (Java 21) allows type patterns (`case String s ->`) and guarded patterns (`case String s when s.length() > 5 ->`). The 'when' clause is a guard that further filters after the type match. With sealed types, the compiler enforces exhaustiveness without a default clause. If `sealed interface Shape permits Circle, Square, Triangle`, then `switch(shape) { case Circle c -> ...; case Square s -> ...; case Triangle t -> ...; }` is exhaustive — no default needed. Adding a new permitted subtype is a compile error in all switch expressions over that type, ensuring no case is missed. Guarded patterns must come before their unguarded versions (`case String s when s.isEmpty()` before `case String s`), as the compiler evaluates cases top-to-bottom and the first match wins. Null handling is explicit: you can add `case null ->` or it throws NullPointerException by default.",
       difficulty: "senior",
     },
+    {
+      id: "2-4-q3",
+      q: "Какие виды циклов существуют в Java? Какой где применять?",
+      a: "В Java три основных вида циклов: 1) Циклы с предусловием (while) -- условие выполнения определяется перед первой итерацией. Используется когда количество итераций заранее неизвестно. 2) Циклы с постусловием (do-while) -- условие определяется после первой итерации, поэтому тело цикла всегда выполняется минимум один раз. 3) Циклы со счетчиком (for) -- количество итераций определяется счетчиком с начальным и конечным значением. Также есть enhanced for-loop (for-each) для итерации по коллекциям и массивам.",
+      difficulty: "junior",
+    },
   ],
-  tip: "When switch expressions do not cover all cases, the compiler forces you to add a default. This is one reason to prefer switch expressions over if-else chains — the compiler ensures you handle all cases.",
+  tip: "Когда switch-выражение не покрывает все случаи, компилятор требует добавить default. Это одна из причин предпочтения switch-выражений вместо цепочек if-else -- компилятор гарантирует обработку всех вариантов.\n\n---\n\n" +
+    "When switch expressions do not cover all cases, the compiler forces you to add a default. This is one reason to prefer switch expressions over if-else chains — the compiler ensures you handle all cases.",
   springConnection: null,
 };

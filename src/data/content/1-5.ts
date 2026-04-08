@@ -5,8 +5,10 @@ export const topic: TopicContent = {
   blockId: 1,
   title: "JIT Compilation",
   summary:
+    "JIT (Just-In-Time) компилятор -- это то, что делает Java быстрой. Он отслеживает часто выполняемые участки кода ('горячий' код) и компилирует их в оптимизированный нативный машинный код во время выполнения. Именно поэтому Java-приложения ускоряются со временем -- явление, называемое 'прогревом' (warm-up).\n\n---\n\n" +
     "The JIT (Just-In-Time) compiler is what makes Java fast despite being interpreted. It monitors which code paths are executed frequently ('hot' code) and compiles them to optimized native machine code at runtime. This is why Java applications get faster over time — a phenomenon called 'warm-up'.",
   deepDive:
+    "JVM исполняет байт-код, но чистая интерпретация медленная. JIT-компилятор решает эту проблему: он профилирует выполнение, находит 'горячие' методы и компилирует их в нативный машинный код. HotSpot JVM использует многоуровневую компиляцию: интерпретатор (Level 0), C1 компилятор (Levels 1-3, быстрая компиляция) и C2 компилятор (Level 4, агрессивные оптимизации: inlining, escape analysis, lock elision). Деоптимизация -- откат к интерпретации при нарушении спекулятивных предположений JIT.\n\n---\n\n" +
     "The HotSpot JVM uses a tiered compilation strategy with five levels. Initially, code is interpreted (Level 0 — no compilation overhead, slow execution). As methods are called repeatedly, they are first compiled by C1 (Client Compiler, Levels 1-3) which does quick optimizations. Methods that become truly hot are then recompiled by C2 (Server Compiler, Level 4) which applies aggressive optimizations like inlining, loop unrolling, escape analysis, and dead code elimination. This tiered approach balances startup speed with peak throughput.\n\n" +
     "The JIT uses On-Stack Replacement (OSR) to optimize long-running loops. If a method contains a hot loop, the JIT can compile the method and transfer execution from the interpreter to the compiled code mid-loop — without waiting for the method to be called again. This is essential for applications that spend most of their time in tight loops.\n\n" +
     "Key JIT optimizations you should know: Method inlining replaces a method call with the method body, eliminating call overhead and enabling further optimizations. Escape Analysis determines whether an object is referenced outside its creating method — if it does not escape, the JVM can allocate it on the stack instead of the heap (scalar replacement), eliminating GC pressure entirely. Lock elision removes synchronization on objects that escape analysis proves are thread-local. Speculative optimization uses profiling data to make assumptions (e.g., 'this virtual call always targets ArrayList.add()') and generates fast code for the common case, with a deoptimization trap if the assumption fails.\n\n" +
@@ -102,7 +104,8 @@ public class JitWarmupDemo {
       difficulty: "senior",
     },
   ],
-  tip: "Java is NOT slow. After warm-up, JIT-compiled Java code can match or exceed C++ performance in some workloads because the JIT uses runtime profiling data that a static compiler does not have.",
+  tip: "Java НЕ медленная. После прогрева JIT-скомпилированный код может сравняться или превзойти производительность C++ в некоторых задачах, потому что JIT использует данные профилирования, недоступные статическому компилятору.\n\n---\n\n" +
+    "Java is NOT slow. After warm-up, JIT-compiled Java code can match or exceed C++ performance in some workloads because the JIT uses runtime profiling data that a static compiler does not have.",
   springConnection: {
     concept: "JIT warm-up and startup time",
     springFeature: "Spring Boot AOT & GraalVM Native Image",
