@@ -39,7 +39,7 @@ export default function TopicContentView({
   const [activeTab, setActiveTab] = useState<TabId>("learn");
 
   return (
-    <div className="flex-1 overflow-auto p-7 max-w-[860px]">
+    <div className="flex-1 overflow-auto p-4 sm:p-7 max-w-[860px]">
       <div className="mb-6">
         <div className="text-[11px] text-accent-green tracking-[2px] uppercase mb-1.5">
           {blockTitle}

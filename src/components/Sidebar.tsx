@@ -13,6 +13,9 @@ interface SidebarProps {
   dueCount: number;
   onSelectTopic: (topicId: string) => void;
   onReviewClick: () => void;
+  mobile?: boolean;
+  open?: boolean;
+  onClose?: () => void;
 }
 
 export default function Sidebar({
@@ -21,6 +24,9 @@ export default function Sidebar({
   dueCount,
   onSelectTopic,
   onReviewClick,
+  mobile = false,
+  open = true,
+  onClose,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [expandedBlocks, setExpandedBlocks] = useState<Set<number>>(
@@ -35,15 +41,20 @@ export default function Sidebar({
     });
   };
 
-  return (
+  const handleSelectTopic = (topicId: string) => {
+    onSelectTopic(topicId);
+    if (mobile && onClose) onClose();
+  };
+
+  const sidebarContent = (
     <motion.aside
-      animate={{ width: collapsed ? 56 : 280 }}
+      animate={{ width: mobile ? 280 : collapsed ? 56 : 280 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
       className="shrink-0 bg-bg-card border-r border-border flex flex-col overflow-hidden h-screen"
     >
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-3">
-          {!collapsed && (
+          {(mobile || !collapsed) && (
             <div>
               <div className="text-[11px] text-accent-green tracking-[3px] uppercase">
                 Java Core
@@ -53,19 +64,31 @@ export default function Sidebar({
               </div>
             </div>
           )}
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 rounded-sm hover:bg-bg-elevated transition-colors text-text-muted"
-          >
-            {collapsed ? "▶" : "◀"}
-          </button>
+          {mobile ? (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-sm hover:bg-bg-elevated transition-colors text-text-muted text-lg"
+            >
+              ✕
+            </button>
+          ) : (
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-1.5 rounded-sm hover:bg-bg-elevated transition-colors text-text-muted"
+            >
+              {collapsed ? "▶" : "◀"}
+            </button>
+          )}
         </div>
-        {!collapsed && (
+        {(mobile || !collapsed) && (
           <ProgressBar completed={completed.size} total={TOTAL_TOPICS} />
         )}
-        {!collapsed && dueCount > 0 && (
+        {(mobile || !collapsed) && dueCount > 0 && (
           <button
-            onClick={onReviewClick}
+            onClick={() => {
+              onReviewClick();
+              if (mobile && onClose) onClose();
+            }}
             className="mt-3 w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-bg-elevated border border-border hover:border-accent-amber transition-colors text-sm"
           >
             <span className="text-accent-amber">🔄</span>
@@ -74,7 +97,7 @@ export default function Sidebar({
         )}
       </div>
 
-      {!collapsed && (
+      {(mobile || !collapsed) && (
         <div className="flex-1 overflow-y-auto py-2">
           {ROADMAP.map((block) => (
             <SidebarBlock
@@ -84,13 +107,13 @@ export default function Sidebar({
               expanded={expandedBlocks.has(block.id)}
               selectedTopicId={selectedTopicId}
               onToggle={() => toggleBlock(block.id)}
-              onSelectTopic={onSelectTopic}
+              onSelectTopic={handleSelectTopic}
             />
           ))}
         </div>
       )}
 
-      {collapsed && (
+      {!mobile && collapsed && (
         <div className="flex-1 overflow-y-auto py-2 flex flex-col items-center gap-1">
           {ROADMAP.map((block) => (
             <button
@@ -109,6 +132,39 @@ export default function Sidebar({
       )}
     </motion.aside>
   );
+
+  // Mobile: overlay drawer
+  if (mobile) {
+    return (
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-black/60 z-40"
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="fixed left-0 top-0 z-50"
+            >
+              {sidebarContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  // Desktop: inline
+  return sidebarContent;
 }
 
 function SidebarBlock({
