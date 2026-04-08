@@ -5,14 +5,27 @@ export const topic: TopicContent = {
   blockId: 22,
   title: "Why Spring Uses Java EE",
   summary:
-    "Spring Framework builds on Java EE specifications because they are industry standards that ensure interoperability. Spring simplifies Java EE by providing wrappers, autoconfiguration, and a more flexible dependency injection model, reducing boilerplate while leveraging proven APIs.",
+    "Spring использует спецификации Java EE потому что: (1) Java EE -- стандарт в экосистеме Java, упрощающий интеграцию; (2) разработчики знакомы с Java EE, что снижает порог входа; (3) Spring значительно упрощает использование спецификаций, добавляя обёртки и автоконфигурацию.\n\n---\n\nSpring uses Java EE specifications because: (1) Java EE is the standard in the Java ecosystem, simplifying integration; (2) developers are already familiar with Java EE, lowering the learning curve; (3) Spring greatly simplifies spec usage by adding wrappers and auto-configuration.",
   deepDive:
-    "## Почему Spring использует спецификации Java EE?\n\nSpring Framework широко использует многие спецификации Java EE, предоставляя более гибкие, упрощённые и расширяемые механизмы их реализации.\n\nSpring значительно упрощает использование спецификаций Java EE, предоставляя мощные обёртки, гибкую конфигурацию и интеграцию, что делает Spring одной из самых популярных альтернатив для разработки корпоративных приложений на Java.\n\n### Причины:\n\n1. **Java EE -- это стандарт** в экосистеме Java, что упрощает интеграцию Spring с другими технологиями\n2. **Знакомство разработчиков** -- многие разработчики уже знакомы с Java EE, что снижает порог входа\n3. **Переносимость** -- приложения могут мигрировать между различными реализациями (Hibernate -> EclipseLink)\n4. **Экосистема** -- огромное количество библиотек и инструментов совместимых с Java EE спецификациями\n\n### Как Spring улучшает Java EE:\n\n| Java EE | Проблема | Решение Spring |\n|---|---|---|\n| Servlet API | Много boilerplate кода | DispatcherServlet + @Controller |\n| JPA | Сложная конфигурация | Spring Data JPA (автоматические репозитории) |\n| JTA | Сложные распределённые транзакции | @Transactional с простой настройкой |\n| CDI | Ограниченная функциональность DI | Spring IoC (профили, условия, SpEL) |\n| Bean Validation | Ручная интеграция | Автоматическая валидация через @Valid |\n| JMS | Много boilerplate | JmsTemplate + @JmsListener |\n| JAX-RS | Отдельная конфигурация | @RestController (встроен в Spring MVC) |\n\n---\n\n## Why Spring Uses Java EE Specifications\n\nSpring Framework was created by Rod Johnson in 2003 as a response to the complexity of J2EE (Java 2 Enterprise Edition). Rather than replacing Java EE entirely, Spring embraced its specifications while dramatically simplifying their use.\n\n### Reasons Spring Builds on Java EE:\n\n**1. Standards-Based Interoperability**\nJava EE specs are industry standards governed by the JCP (Java Community Process). By building on these standards, Spring applications can:\n- Swap implementations (Hibernate for EclipseLink, Tomcat for Jetty)\n- Interoperate with non-Spring Java EE applications\n- Use standard annotations (@Entity, @Inject, @Valid) recognized by all Java developers\n\n**2. Lower Barrier to Entry**\nDevelopers familiar with Servlet API, JPA, or Bean Validation can immediately understand Spring code because it uses the same annotations and concepts.\n\n**3. Proven, Battle-Tested APIs**\nSpecifications like JPA, JDBC, and Servlet API have been refined over decades. Spring leverages this maturity rather than reinventing these complex protocols.\n\n**4. Ecosystem Leverage**\nThousands of libraries, tools (Hibernate, Flyway, Liquibase), and monitoring solutions are built against Java EE specs and work seamlessly with Spring.\n\n### How Spring Improves Upon Java EE:\n\n- **Convention over configuration** -- Spring Boot auto-configures sensible defaults\n- **Simpler dependency injection** -- Constructor injection without XML, @Conditional beans, profiles\n- **Template classes** -- JdbcTemplate, JmsTemplate, RestTemplate reduce boilerplate\n- **Spring Data** -- Auto-generated repository implementations from interfaces\n- **Embedded servers** -- No need for external application servers (WAR deployment)\n- **Opinionated starters** -- One dependency pulls in all related libraries with compatible versions\n\n### Spring Boot vs Traditional Java EE Deployment:\n\n**Traditional Java EE:**\n- Write code -> Package as WAR -> Deploy to Application Server (WildFly, GlassFish) -> Server manages lifecycle\n- Heavy, slow startup, complex configuration\n\n**Spring Boot:**\n- Write code -> Package as executable JAR with embedded Tomcat -> `java -jar app.jar`\n- Lightweight, fast startup, cloud-native friendly, ideal for microservices",
-  code: `// ─── Java EE Spec vs Spring Simplification ───
+    "## Почему Spring использует Java EE спецификации?\n\n" +
+    "- Java EE -- это стандарт в экосистеме Java, что упрощает интеграцию Spring с другими технологиями\n" +
+    "- Многие разработчики уже знакомы с Java EE, что снижает порог входа\n" +
+    "- Spring значительно упрощает использование спецификаций Java EE, предоставляя мощные обёртки, гибкую конфигурацию и интеграцию\n\n---\n\n" +
+    "## Spring vs Java EE: Philosophy\n\n" +
+    "**Java EE approach:** Full application server (WildFly, WebLogic, WebSphere) provides all implementations. Deploy WAR/EAR to the server. Heavy, monolithic, slow startup.\n\n" +
+    "**Spring approach:** Lightweight container with embedded server (Tomcat). Pick and choose only the specs you need. Fast startup, easy testing, executable JARs.\n\n" +
+    "## How Spring Simplifies Java EE\n\n" +
+    "**Servlet API -> Spring MVC:** Instead of writing raw servlets, use @Controller/@RestController with automatic parameter binding, content negotiation, and exception handling.\n\n" +
+    "**JPA -> Spring Data JPA:** Instead of managing EntityManager directly, define repository interfaces and let Spring generate implementations. Query methods from method names.\n\n" +
+    "**JDBC -> JdbcTemplate/Spring Data JDBC:** Instead of manual connection/statement/resultset management, use templates that handle resources, exceptions, and mapping.\n\n" +
+    "**Bean Validation -> Automatic validation:** Instead of manual validator invocation, add @Valid to controller parameters for automatic validation with error handling.\n\n" +
+    "**JMS -> Spring JMS:** Instead of manual connection factory setup, use JmsTemplate and @JmsListener.\n\n" +
+    "## Why Not Pure Jakarta EE?\n\n" +
+    "Spring provides: (1) Auto-configuration -- sensible defaults out of the box. (2) Opinionated starters -- curated dependency sets. (3) Embedded servers -- no external app server needed. (4) Spring Boot Actuator -- production-ready monitoring. (5) Ecosystem -- Spring Security, Spring Cloud, Spring Batch. Jakarta EE is catching up with MicroProfile, but Spring's ecosystem and community remain larger.",
+  code: `// ===== Java EE style (verbose) vs Spring style (concise) =====
 
-// ── JPA: Manual EntityManager (Java EE style) ──
-@Stateless
-public class UserDao {
+// --- JPA: Pure Java EE ---
+public class UserDaoJavaEE {
     @PersistenceContext
     private EntityManager em;
 
@@ -28,79 +41,78 @@ public class UserDao {
     }
 
     public void save(User user) {
-        em.persist(user);
+        if (user.getId() == null) {
+            em.persist(user);
+        } else {
+            em.merge(user);
+        }
     }
 }
 
-// ── Spring Data JPA: Zero boilerplate ──
+// --- Spring Data JPA (same functionality, zero boilerplate) ---
 public interface UserRepository extends JpaRepository<User, Long> {
-    // Auto-generated: findById, findAll, save, delete, etc.
-
-    // Derived query — Spring generates the JPQL automatically
     List<User> findByName(String name);
-
-    // Custom query
-    @Query("SELECT u FROM User u WHERE u.email LIKE %:domain")
-    List<User> findByEmailDomain(@Param("domain") String domain);
+    // save(), findById() -- inherited automatically
 }
 
-// ── Transactions: JTA (Java EE) vs Spring ──
-// Java EE — manual transaction management
-@Resource
-UserTransaction utx;
+// --- JDBC: Pure Java EE ---
+public List<User> findAllJdbc() throws SQLException {
+    List<User> users = new ArrayList<>();
+    try (Connection conn = dataSource.getConnection();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery("SELECT * FROM users")) {
+        while (rs.next()) {
+            users.add(new User(rs.getLong("id"), rs.getString("name")));
+        }
+    }  // must handle connection, statement, result set closing
+    return users;
+}
 
-public void transfer(Long fromId, Long toId, double amount) {
-    utx.begin();
-    try {
-        // business logic
-        utx.commit();
-    } catch (Exception e) {
-        utx.rollback();
-        throw e;
+// --- Spring JdbcTemplate (handles resources automatically) ---
+public List<User> findAllSpring() {
+    return jdbcTemplate.query("SELECT * FROM users",
+        (rs, row) -> new User(rs.getLong("id"), rs.getString("name")));
+}
+
+// --- Servlet: Pure Java EE ---
+@WebServlet("/api/users")
+public class UserServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest req,
+                         HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json");
+        resp.getWriter().write(objectMapper.writeValueAsString(users));
     }
 }
 
-// Spring — declarative transaction
-@Transactional
-public void transfer(Long fromId, Long toId, double amount) {
-    Account from = accountRepo.findById(fromId).orElseThrow();
-    Account to = accountRepo.findById(toId).orElseThrow();
-    from.debit(amount);
-    to.credit(amount);
-    // Spring handles commit/rollback automatically
-}
-
-// ── Validation: integrated automatically ──
+// --- Spring MVC (same functionality, much cleaner) ---
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    @PostMapping
-    public ResponseEntity<User> create(
-            @Valid @RequestBody UserDTO dto) {  // @Valid triggers Bean Validation
-        // If validation fails, Spring returns 400 automatically
-        return ResponseEntity.ok(userService.create(dto));
+    @GetMapping
+    public List<UserDto> getAll() {
+        return userService.findAll();  // auto JSON serialization
     }
 }`,
   interviewQs: [
     {
       id: "22-3-q0",
-      q: "Why does Spring use Java EE specifications instead of creating its own APIs from scratch?",
-      a: "Spring uses Java EE specs because they are industry standards familiar to most Java developers, ensuring interoperability with other Java EE tools and libraries. By building on JPA, Servlet API, Bean Validation, etc., Spring applications can swap implementations (Hibernate to EclipseLink) and leverage the vast ecosystem. Spring's value is not replacing these specs but simplifying their use with auto-configuration, templates, and convention over configuration.",
+      q: "Why does Spring use Java EE specifications instead of creating everything from scratch?",
+      a: "Spring builds on Java EE standards for three reasons: (1) Standards ensure interoperability -- code using JPA works with Hibernate, EclipseLink, or any JPA provider. (2) Developers already know Java EE APIs, reducing learning curve. (3) Spring adds value by simplifying these APIs with auto-configuration, templates, and wrappers rather than replacing them.",
       difficulty: "junior",
     },
     {
       id: "22-3-q1",
-      q: "How does Spring Data JPA simplify the standard JPA specification?",
-      a: "Standard JPA requires manual EntityManager injection, explicit JPQL queries, and boilerplate transaction handling. Spring Data JPA auto-generates repository implementations from interface definitions: just extend JpaRepository<Entity, ID> and get findById, findAll, save, delete for free. Derived query methods (findByNameAndAge) generate JPQL automatically. @Query annotation handles custom queries. Paging and sorting come built-in via Pageable parameter. The developer writes only the interface -- Spring creates the implementation at runtime.",
+      q: "How does Spring simplify JPA compared to using it directly? Give specific examples.",
+      a: "Direct JPA: manually inject EntityManager, write JPQL queries, handle transactions, implement pagination. Spring Data JPA: (1) Define an interface extending JpaRepository -- get save, findById, findAll, delete for free. (2) Query derivation from method names (findByNameAndEmail). (3) @Transactional is auto-configured for repositories. (4) Page/Sort support built-in. (5) Auditing with @CreatedDate/@LastModifiedDate. Essentially, Spring Data JPA eliminates 80%+ of boilerplate while still using standard JPA under the hood.",
       difficulty: "mid",
     },
     {
       id: "22-3-q2",
-      q: "Compare the traditional Java EE application server deployment model with Spring Boot's embedded server approach. What are the trade-offs?",
-      a: "Java EE deploys WAR files to external servers (WildFly, GlassFish) that manage the servlet container, JPA provider, JMS broker, etc. Benefits: centralized management, shared resources across apps. Drawbacks: heavyweight, slow startup, version coupling between app and server. Spring Boot embeds Tomcat/Jetty in an executable JAR, making each app self-contained. Benefits: fast startup, easy containerization (Docker), independent versioning, cloud-native. Trade-offs: each app carries its own server (more memory), no centralized management, requires external solutions for JMS/JTA that app servers provided out-of-the-box. Spring Boot's approach won for microservices; traditional app servers still exist in legacy enterprise environments.",
+      q: "Compare Spring Boot with Jakarta EE for building microservices. What are the advantages of each?",
+      a: "Spring Boot advantages: (1) Mature ecosystem (Spring Cloud for service discovery, config, circuit breakers). (2) Embedded server, executable JARs, fast startup. (3) Huge community, extensive documentation. (4) Auto-configuration reduces boilerplate. Jakarta EE (with MicroProfile) advantages: (1) Standards-based -- no vendor lock-in. (2) Application servers optimized for Jakarta EE. (3) MicroProfile adds microservice features (health, metrics, fault tolerance). (4) Lighter memory footprint with newer runtimes (Quarkus, Open Liberty). In practice, Spring Boot dominates due to ecosystem maturity, but Jakarta EE/MicroProfile is a viable standards-based alternative.",
       difficulty: "senior",
     },
   ],
-  tip: "Knowing both the Java EE spec and its Spring simplification makes you a stronger developer -- you understand the 'why' behind Spring's design decisions and can troubleshoot deeper issues.",
+  tip: "Spring не заменяет Java EE -- он упрощает его использование. Знание обоих уровней (JPA + Spring Data JPA) ценно на собеседованиях.\n\n---\n\nSpring does not replace Java EE -- it simplifies its usage. Knowing both levels (JPA + Spring Data JPA) is valuable in interviews.",
   springConnection: null,
 };

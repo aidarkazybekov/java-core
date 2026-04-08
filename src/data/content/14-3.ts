@@ -5,105 +5,109 @@ export const topic: TopicContent = {
   blockId: 14,
   title: "Persistence Context & Entity Lifecycle",
   summary:
-    "Persistence Context (контекст персистентности) управляет сущностями через EntityManager. Состояния сущности: Transient (новый, не связан с PC), Persistent/Managed (связан с PC), Detached (отсоединен от PC), Removed (запланирован к удалению).\n\n---\n\nThe Persistence Context manages entities via EntityManager. Entity states: Transient (new, not in PC), Persistent/Managed (attached to PC), Detached (disconnected from PC), Removed (scheduled for deletion).",
+    "Persistence Context -- кэш первого уровня, управляемый EntityManager. Сущности проходят через состояния: Transient (не связана с PC), Persistent/Managed (связана, имеет ID), Detached (отсоединена от PC), Removed (запланирована к удалению).\n\n---\n\nPersistence Context is a first-level cache managed by EntityManager. Entities pass through states: Transient (not associated with PC), Persistent/Managed (associated, has ID), Detached (disconnected from PC), Removed (scheduled for deletion).",
   deepDive:
-    "## Persistence Context\n\n- **DataSource** -- интерфейс, описывающий настройки подключения к БД. Из него можно взять созданный Connection.\n- **EntityManager** -- основной интерфейс для управления сущностями (Entity). С его помощью можно создавать запросы, управлять состоянием сущностей и формировать запросы.\n\nPersistence Context -- это кэш первого уровня (first-level cache), который существует в рамках одной транзакции.\n\n## Entity Lifecycle\n\n- **Transient** -- экземпляр сущности создан, но не связан с PC. Нет ID, нет соответствующей строки в БД.\n- **Persistent (Managed)** -- сущность связана с PC, имеет ID и соответствует строке в БД. Все изменения автоматически синхронизируются с БД (dirty checking).\n- **Detached** -- сущность имеет идентификатор, но больше не связана с PC. Изменения не отслеживаются.\n- **Removed** -- сущность имеет ID и связана с PC, но запланирована к удалению.\n\n---\n\nThe **Persistence Context** is JPA's first-level cache and unit of work. It's typically scoped to a single transaction (transaction-scoped) in Spring applications.\n\nKey behaviors:\n1. **Identity guarantee**: Within a PC, there is only ONE Java object per database row. `em.find(User.class, 1L)` called twice returns the same object reference.\n2. **Dirty checking**: The PC tracks managed entities. At flush time (usually before commit), Hibernate compares the current state against the snapshot taken at load time and generates UPDATE SQL for changed entities automatically.\n3. **Write-behind**: SQL is not executed immediately. It accumulates and is flushed in batches before the transaction commits.\n\n**Entity state transitions**:\n- `new User()` -> **Transient** (not in PC, no ID)\n- `em.persist(user)` -> **Managed** (in PC, ID assigned, tracked)\n- `em.find()` / query -> **Managed** (loaded from DB into PC)\n- Transaction ends / `em.detach()` / `em.clear()` -> **Detached** (has ID but not tracked)\n- `em.merge(detachedUser)` -> returns a new **Managed** copy (the original stays detached!)\n- `em.remove(managedUser)` -> **Removed** (scheduled for DELETE at flush)\n\n**Common pitfalls**:\n- Modifying a detached entity without merge() -- changes are silently lost\n- merge() returns a NEW managed instance -- always use the returned object\n- Native queries bypass the PC -- the cache may become stale\n- LazyInitializationException occurs when accessing a lazy collection after the PC is closed",
-  code: `// Entity lifecycle transitions
-@Service
-public class UserLifecycleDemo {
-
-    @PersistenceContext
-    private EntityManager em;
-
-    @Transactional
-    public void demonstrateLifecycle() {
-
-        // 1. TRANSIENT -- new object, not in persistence context
-        User user = new User();
-        user.setName("Alice");
-        user.setEmail("alice@example.com");
-        // user.getId() == null
-
-        // 2. MANAGED -- persist attaches to PC, ID generated
-        em.persist(user);
-        // user.getId() != null, tracked by PC
-
-        // 3. Dirty checking -- changes auto-synced at flush
-        user.setName("Alice Updated");
-        // No explicit save needed! PC detects the change
-
-        // 4. Flush -- forces SQL execution (happens before commit)
-        em.flush();
-        // INSERT + UPDATE SQL executed
-
-        // 5. DETACHED -- clear removes all entities from PC
-        em.clear();
-        // user is now detached, changes no longer tracked
-        user.setName("Won't be saved"); // this change is LOST
-
-        // 6. Merge -- reattaches by copying state to a new managed entity
-        User managedUser = em.merge(user);
-        // managedUser is MANAGED, user is still DETACHED!
-        // Always use the returned object:
-        managedUser.setName("Properly Updated");
-
-        // 7. Find -- loads as MANAGED
-        User found = em.find(User.class, user.getId());
-        // Same PC -> found == managedUser (identity guarantee)
-
-        // 8. REMOVED -- scheduled for deletion
-        em.remove(managedUser);
-        // DELETE SQL will execute at flush/commit
-    }
-}
-
-// Spring Data JPA handles transitions automatically
+    "## Persistence Context\n\n" +
+    "- **DataSource** -- интерфейс настроек подключения к БД\n" +
+    "- **EntityManager** -- основной интерфейс для управления сущностями (Entity)\n\n" +
+    "Persistence Context -- кэш первого уровня Hibernate. Все сущности в рамках транзакции хранятся в нём. Повторный запрос возвращает объект из кэша.\n\n" +
+    "## Entity Lifecycle\n\n" +
+    "- **Transient** -- экземпляр создан, не связан с PC\n" +
+    "- **Persistent (Managed)** -- связан с PC, имеет ID, соответствует строке в БД\n" +
+    "- **Detached** -- имеет ID, но не связан с PC\n" +
+    "- **Removed** -- имеет ID, связан с PC, запланирован к удалению\n\n" +
+    "## Кэширование Hibernate\n\n" +
+    "- **First Level Cache** -- Persistence Context (привязан к сессии/транзакции)\n" +
+    "- **Second Level Cache** -- общий для приложения (EhCache, Infinispan)\n\n---\n\n" +
+    "## Persistence Context (First-Level Cache)\n\n" +
+    "Key behaviors:\n" +
+    "- **Identity guarantee:** One Java object per DB row within a PC.\n" +
+    "- **Dirty checking:** Hibernate compares entity state with snapshot at flush time.\n" +
+    "- **Write-behind:** SQL batched and executed at flush (before commit, before queries, or on explicit flush()).\n\n" +
+    "## Entity Lifecycle States\n\n" +
+    "- **Transient:** `new User()` -- not in PC. persist() moves to Managed.\n" +
+    "- **Managed:** Tracked by Hibernate. Changes auto-detected and flushed.\n" +
+    "- **Detached:** PC was closed. merge() re-attaches.\n" +
+    "- **Removed:** remove() called -- DELETE scheduled at flush.\n\n" +
+    "**EntityManager methods:** persist(), merge(), remove(), find(), detach(), flush(), clear().\n\n" +
+    "## Second-Level Cache\n\n" +
+    "Shared across sessions. Per-entity with @Cacheable. Useful for read-heavy, rarely-changing data.",
+  code: `// ===== Entity Lifecycle in action =====
 @Service
 @Transactional
 public class UserService {
 
-    private final UserRepository repo;
+    @PersistenceContext
+    private EntityManager em;
 
-    // save() on new entity: persist() -> MANAGED
-    public User create(String name) {
-        User user = new User(name);     // Transient
-        return repo.save(user);          // Managed (persisted)
+    public void demonstrateLifecycle() {
+        // 1. Transient: new object, not in Persistence Context
+        User user = new User();
+        user.setName("John");
+
+        // 2. Managed: after persist(), user is tracked
+        em.persist(user);  // INSERT queued
+
+        // 3. Dirty checking: changes auto-detected
+        user.setName("Jane");  // No explicit save needed!
+
+        // 4. Flush: sync PC with database
+        em.flush();  // INSERT + UPDATE executed
+
+        // 5. Detach: remove from PC
+        em.detach(user);
+        user.setName("Bob");  // NOT tracked, change lost
+
+        // 6. Merge: re-attach detached entity
+        User managed = em.merge(user);
+        // 'managed' is the PC copy, 'user' is still detached
+
+        // 7. Remove: schedule for deletion
+        em.remove(managed);  // DELETE queued
     }
 
-    // save() on existing entity: merge() -> MANAGED
-    public User update(Long id, String name) {
-        User user = repo.findById(id).orElseThrow(); // Managed
-        user.setName(name);
-        // No save() needed -- dirty checking handles it!
-        return user;
+    // Identity guarantee
+    public void identityDemo() {
+        User u1 = em.find(User.class, 1L);  // SQL SELECT
+        User u2 = em.find(User.class, 1L);  // No SQL, from PC cache
+        assert u1 == u2;  // true! Same reference
     }
+}
 
-    // findById returns MANAGED entity within transaction
-    @Transactional(readOnly = true)
-    public User findById(Long id) {
-        return repo.findById(id).orElseThrow(); // Managed
-    } // after method: entity becomes Detached
-}`,
+// ===== Second-Level Cache =====
+@Entity
+@Cacheable
+@org.hibernate.annotations.Cache(
+    usage = CacheConcurrencyStrategy.READ_WRITE
+)
+public class Country {
+    @Id
+    private String code;
+    private String name;
+}
+
+// application.yml:
+// spring.jpa.properties.hibernate.cache.use_second_level_cache=true`,
   interviewQs: [
     {
       id: "14-3-q0",
-      q: "What are the four entity states in JPA? How do transitions between them work?",
-      a: "Transient -- newly created, not in persistence context, no ID. Managed/Persistent -- attached to PC, tracked, changes auto-synced. Detached -- has ID but disconnected from PC (after transaction ends or em.detach()). Removed -- scheduled for deletion. Transitions: persist() makes Transient -> Managed; find()/query loads as Managed; transaction end -> Detached; merge() copies Detached -> new Managed; remove() -> Removed.",
+      q: "What is the Persistence Context in JPA?",
+      a: "The Persistence Context is a first-level cache storing managed entities within a transaction. EntityManager is the API for it. Every entity loaded is cached in the PC. Repeated lookups by ID return the same object (identity guarantee). Changes to managed entities are auto-detected (dirty checking) and synced with DB at flush/commit.",
       difficulty: "junior",
     },
     {
       id: "14-3-q1",
-      q: "What is dirty checking in JPA? Why don't you need to call save() on an already-managed entity?",
-      a: "Dirty checking is the mechanism where the persistence context automatically detects changes to managed entities. When an entity is loaded, Hibernate takes a snapshot of its state. At flush time (before commit), it compares the current state to the snapshot and generates UPDATE SQL for any differences. That's why modifying a managed entity's fields is enough -- no explicit save()/merge() call is needed. This only works for managed entities within an active transaction.",
+      q: "Describe the four JPA Entity lifecycle states and transitions between them.",
+      a: "1) Transient: created with 'new', not in PC. persist() -> Managed. 2) Managed: in PC, tracked. Changes auto-synced via dirty checking. 3) Detached: was managed but PC closed or detach() called. merge() re-attaches. 4) Removed: remove() called, DELETE scheduled. Key: only Managed entities are tracked. After detach, changes are lost unless merge() is called.",
       difficulty: "mid",
     },
     {
       id: "14-3-q2",
-      q: "What is the difference between persist() and merge()? Why does merge() return a new object?",
-      a: "persist() takes a transient entity and makes it managed -- the same Java object becomes tracked. It throws if the entity already has an ID (is detached). merge() takes a detached (or transient) entity, copies its state into a NEW managed instance, and returns that managed copy. The original object remains detached. This is because the PC might already have a managed instance with the same ID. merge() must reconcile: it loads/creates the managed copy and applies the detached state to it. Always use the returned object from merge(), as changes to the original are not tracked.",
+      q: "How does Hibernate dirty checking work? How can you optimize it?",
+      a: "When loaded, Hibernate stores a field snapshot. At flush, it compares every managed entity's current state with its snapshot. O(N*M) comparisons can be expensive. Optimizations: (1) @Transactional(readOnly=true) skips dirty checking. (2) Use DTO projections for reads. (3) Detach unneeded entities. (4) StatelessSession for bulk ops. (5) @DynamicUpdate generates UPDATE only for changed columns.",
       difficulty: "senior",
     },
   ],
-  tip: "Within a `@Transactional` method, entities from `findById()` are managed -- just modify their fields directly and dirty checking saves them. No explicit `save()` needed.\n\n---\n\nВнутри `@Transactional` метода сущности из `findById()` являются managed -- просто изменяйте их поля, и dirty checking сохранит изменения. Явный `save()` не нужен.",
+  tip: "Для read-only операций используйте `@Transactional(readOnly = true)` -- Hibernate пропускает dirty checking.\n\n---\n\nFor read-only operations use `@Transactional(readOnly = true)` -- Hibernate skips dirty checking.",
   springConnection: null,
 };

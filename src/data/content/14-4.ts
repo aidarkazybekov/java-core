@@ -5,97 +5,115 @@ export const topic: TopicContent = {
   blockId: 14,
   title: "Transactions & @Transactional",
   summary:
-    "Spring поддерживает декларативное управление транзакциями через @Transactional. Два ключевых атрибута: propagation (поведение при вложенных вызовах: REQUIRED, REQUIRES_NEW и др.) и isolation (уровень изоляции: READ_COMMITTED, REPEATABLE_READ и др.).\n\n---\n\nSpring supports declarative transaction management via @Transactional. Two key attributes: propagation (nested call behavior: REQUIRED, REQUIRES_NEW, etc.) and isolation (isolation level: READ_COMMITTED, REPEATABLE_READ, etc.).",
+    "Транзакции в Spring управляются программно или декларативно (@Transactional). Основные атрибуты: propagation (REQUIRED, REQUIRES_NEW, NESTED и др.) и isolation (READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ, SERIALIZABLE). По умолчанию откат на RuntimeException.\n\n---\n\nSpring transactions are managed programmatically or declaratively (@Transactional). Key attributes: propagation (REQUIRED, REQUIRES_NEW, NESTED, etc.) and isolation levels. Rolls back on RuntimeException by default.",
   deepDive:
-    "## Transaction\n\nДля управления транзакциями в Spring есть два механизма:\n- **Программное** -- connection.setAutoCommit(false), connection.commit()\n- **Декларативное** -- @Transactional\n\nОсновные атрибуты @Transactional:\n\n### Propagation (распространение)\n- **REQUIRED** (по умолчанию) -- если транзакция существует, выполняется в ней. Если нет -- создается новая.\n- **SUPPORTS** -- выполняется в транзакции, если она есть. Если нет -- без транзакции.\n- **REQUIRES_NEW** -- всегда создает новую транзакцию. Текущая приостанавливается.\n- **NOT_SUPPORTED** -- выполняется без транзакции. Текущая приостанавливается.\n- **MANDATORY** -- должен выполняться в транзакции. Если нет -- исключение.\n- **NEVER** -- не должен выполняться в транзакции. Если есть -- исключение.\n- **NESTED** -- вложенная транзакция, зависимая от текущей. Может быть откачена отдельно.\n\n### Isolation (изоляция)\n- **DEFAULT** -- уровень изоляции БД\n- **READ_UNCOMMITTED** -- чтение незакоммиченных данных (dirty read)\n- **READ_COMMITTED** -- только закоммиченные данные\n- **REPEATABLE_READ** -- повторяемое чтение\n- **SERIALIZABLE** -- полная сериализация\n\n---\n\n**@Transactional** works through AOP proxies. Spring wraps the bean in a proxy that starts a transaction before the method and commits/rolls back after. Key implications:\n\n1. **Self-invocation problem**: Calling a @Transactional method from the same class bypasses the proxy, so the transaction is not applied. Solution: inject the service into itself, extract to a separate service, or use `AopContext.currentProxy()`.\n\n2. **Rollback behavior**: By default, Spring rolls back on unchecked exceptions (RuntimeException) and Errors, but NOT on checked exceptions. Customize with `rollbackFor = Exception.class`.\n\n3. **readOnly flag**: `@Transactional(readOnly = true)` hints the persistence provider to optimize (skip dirty checking, allow read replicas). Does NOT prevent writes at the code level.\n\n4. **Propagation** controls how transactions nest:\n- REQUIRED (default) -- join existing or create new. Most common.\n- REQUIRES_NEW -- suspend current, create independent. Use for audit logs that must persist even if the main transaction fails.\n- NESTED -- savepoint-based. Can rollback independently but commits with parent.\n\n5. **Isolation** controls visibility of concurrent changes. Higher isolation prevents more anomalies but reduces throughput. READ_COMMITTED is the most common production choice.\n\n6. **Timeout**: `@Transactional(timeout = 30)` sets maximum seconds for the transaction.",
-  code: `// Basic @Transactional usage
+    "## Transaction\n\n" +
+    "В Spring Framework транзакции обрабатываются через Spring Transaction Management.\n\n" +
+    "**Два механизма:**\n" +
+    "- **Программное** -- connection.setAutoCommit(false), commit()\n" +
+    "- **Декларативное** -- @Transactional\n\n" +
+    "## Propagation\n\n" +
+    "- **REQUIRED** (по умолчанию) -- если TX есть, выполняется в ней; если нет -- создаётся\n" +
+    "- **SUPPORTS** -- если TX есть -- в ней; если нет -- без транзакции\n" +
+    "- **REQUIRES_NEW** -- всегда новая TX; текущая приостанавливается\n" +
+    "- **NOT_SUPPORTED** -- без TX; текущая приостанавливается\n" +
+    "- **MANDATORY** -- обязательна TX; иначе исключение\n" +
+    "- **NEVER** -- TX запрещена; иначе исключение\n" +
+    "- **NESTED** -- вложенная TX (savepoint)\n\n" +
+    "## Isolation\n\n" +
+    "- DEFAULT, READ_UNCOMMITTED, READ_COMMITTED, REPEATABLE_READ, SERIALIZABLE\n\n---\n\n" +
+    "## How @Transactional Works\n\n" +
+    "Spring creates a proxy. On external call, the proxy starts TX, invokes method, commits or rolls back.\n\n" +
+    "**Self-invocation gotcha:** Calling @Transactional from same class bypasses proxy -- no TX created. Fix: inject self, use TransactionTemplate, or separate beans.\n\n" +
+    "## Propagation Details\n\n" +
+    "- **REQUIRED:** Shared TX. Rollback in inner rolls back everything.\n" +
+    "- **REQUIRES_NEW:** Independent TX. Inner commits even if outer fails. Use for audit logs.\n" +
+    "- **NESTED:** JDBC savepoints. Nested rollback only undoes nested changes.\n\n" +
+    "## Rollback Behavior\n\n" +
+    "Default: rollback on unchecked exceptions (RuntimeException) and Errors. NOT on checked exceptions. Override with rollbackFor.\n\n" +
+    "## Read-Only\n\n" +
+    "`@Transactional(readOnly = true)` -- skips dirty checking, optimizes JDBC/DB for reads.",
+  code: `// ===== Declarative Transactions =====
 @Service
-@Transactional(readOnly = true)  // default for all methods
 public class OrderService {
 
     private final OrderRepository orderRepo;
     private final PaymentService paymentService;
-    private final AuditService auditService;
 
-    @Transactional  // overrides readOnly for write operation
+    // Default: REQUIRED, rollback on RuntimeException
+    @Transactional
     public Order createOrder(CreateOrderRequest request) {
-        Order order = new Order(request);
-        order = orderRepo.save(order);
-        paymentService.processPayment(order);
+        Order order = new Order();
+        order.setItems(request.getItems());
+        orderRepo.save(order);
+        paymentService.charge(order);  // REQUIRED = joins this TX
         return order;
     }
 
-    // readOnly = true: optimized read, skip dirty checking
-    public Order findById(Long id) {
-        return orderRepo.findById(id)
-                .orElseThrow(() -> new OrderNotFoundException(id));
+    @Transactional(readOnly = true)
+    public List<Order> getOrdersByUser(Long userId) {
+        return orderRepo.findByUserId(userId);
     }
 
-    // Custom rollback rules
-    @Transactional(rollbackFor = Exception.class)  // rollback on ALL exceptions
-    public void processRefund(Long orderId) throws PaymentException {
-        Order order = orderRepo.findById(orderId).orElseThrow();
-        order.setStatus(OrderStatus.REFUNDED);
-        paymentService.refund(order);  // may throw checked exception
+    @Transactional(rollbackFor = Exception.class)
+    public void processOrder(Long orderId) throws BusinessException {
+        // rolls back on ANY exception including checked
     }
 }
 
-// Propagation examples
+// ===== REQUIRES_NEW =====
 @Service
 public class AuditService {
-
-    private final AuditLogRepository auditRepo;
-
-    // REQUIRES_NEW: audit log saved even if calling transaction fails
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void logAction(String action, String details) {
-        auditRepo.save(new AuditLog(action, details, LocalDateTime.now()));
+    public void logAction(String action, Long entityId) {
+        auditLogRepo.save(new AuditLog(action, entityId, Instant.now()));
+        // Commits independently of caller's transaction
     }
 }
 
+// ===== Programmatic Transactions =====
 @Service
-public class TransferService {
+public class BatchService {
+    private final TransactionTemplate txTemplate;
 
-    private final AccountRepository accountRepo;
-    private final AuditService auditService;
+    public BatchService(PlatformTransactionManager txManager) {
+        this.txTemplate = new TransactionTemplate(txManager);
+    }
 
-    @Transactional(
-        isolation = Isolation.REPEATABLE_READ,
-        timeout = 10
-    )
-    public void transfer(Long fromId, Long toId, BigDecimal amount) {
-        Account from = accountRepo.findByIdWithLock(fromId);
-        Account to = accountRepo.findByIdWithLock(toId);
-
-        from.debit(amount);
-        to.credit(amount);
-
-        // Audit runs in separate transaction (REQUIRES_NEW)
-        // Persists even if transfer rolls back
-        auditService.logAction("TRANSFER",
-            String.format("%d -> %d: %s", fromId, toId, amount));
+    public void processBatch(List<Item> items) {
+        for (Item item : items) {
+            txTemplate.execute(status -> {
+                try {
+                    processItem(item);
+                } catch (Exception e) {
+                    status.setRollbackOnly();
+                    log.error("Failed: {}", item.getId(), e);
+                }
+                return null;
+            });
+        }
     }
 }`,
   interviewQs: [
     {
       id: "14-4-q0",
-      q: "What does @Transactional do? What are its default settings?",
-      a: "@Transactional wraps the method in a database transaction via AOP proxy. Defaults: propagation = REQUIRED (join existing or create new), isolation = DEFAULT (database default), readOnly = false, rollback on RuntimeException and Error only (not checked exceptions), no timeout. Place on service methods, not repository methods.",
+      q: "What does @Transactional do in Spring? What happens on RuntimeException?",
+      a: "Spring creates a proxy that starts a transaction before the method and commits after success. On RuntimeException (unchecked) or Error, the transaction rolls back automatically. Checked exceptions do NOT trigger rollback by default -- use rollbackFor = Exception.class to change this.",
       difficulty: "junior",
     },
     {
       id: "14-4-q1",
       q: "Explain the difference between REQUIRED, REQUIRES_NEW, and NESTED propagation.",
-      a: "REQUIRED (default) joins the existing transaction or creates a new one if none exists. Both caller and callee share the same transaction -- if either fails, both roll back. REQUIRES_NEW always creates an independent transaction, suspending the existing one. The new transaction commits/rolls back independently. Use for audit logs or notifications that must persist regardless. NESTED creates a savepoint within the current transaction. It can roll back to the savepoint without affecting the outer transaction, but its commit depends on the outer transaction committing.",
+      a: "REQUIRED (default): joins existing TX or creates new. Inner failure rolls back everything. REQUIRES_NEW: always new, independent TX. Inner commits even if outer fails -- use for audit logs. NESTED: savepoint within existing TX. Nested rollback only undoes nested changes; outer can catch and continue. Requires JDBC savepoint support.",
       difficulty: "mid",
     },
     {
       id: "14-4-q2",
-      q: "Why doesn't @Transactional work with self-invocation? How does the proxy mechanism work?",
-      a: "Spring creates a CGLIB (or JDK) proxy around the bean. External calls go through the proxy, which intercepts @Transactional methods to manage transactions. But when a method calls another method on 'this', it's a direct Java call that bypasses the proxy entirely -- the AOP advice never fires. Solutions: (1) inject the service into itself via @Lazy or ApplicationContext.getBean(), (2) extract the transactional method to a separate service, (3) use AspectJ compile-time weaving instead of proxies (real AOP, not proxy-based). This is the fundamental limitation of Spring's proxy-based AOP.",
+      q: "Why does calling @Transactional from within the same class not work? How to fix?",
+      a: "Spring @Transactional works via AOP proxies. Self-invocation (A() calls B() in same class) is a direct Java call bypassing the proxy. Fixes: (1) Inject self and call self.B(); (2) Use TransactionTemplate; (3) Move B() to another @Service bean; (4) Use AspectJ compile-time weaving. This is the most common Spring transaction pitfall.",
       difficulty: "senior",
     },
   ],
-  tip: "Set `@Transactional(readOnly = true)` at the class level for services that mostly read, and override specific write methods with `@Transactional` -- this optimizes Hibernate's flush behavior.\n\n---\n\nУстановите `@Transactional(readOnly = true)` на уровне класса для сервисов, преимущественно читающих данные, и переопределяйте конкретные методы записи через `@Transactional` -- это оптимизирует flush-поведение Hibernate.",
+  tip: "@Transactional не работает при вызове метода внутри того же класса (self-invocation) -- самая частая ошибка.\n\n---\n\n@Transactional does not work for self-invocation (calling a method within the same class) -- the most common pitfall.",
   springConnection: null,
 };

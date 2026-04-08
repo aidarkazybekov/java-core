@@ -5,15 +5,33 @@ export const topic: TopicContent = {
   blockId: 15,
   title: "Spring AOP",
   summary:
-    "AOP (аспектно-ориентированное программирование) позволяет внедрять сквозную функциональность (логирование, транзакции) без изменения бизнес-кода. Использует прокси-объекты (JDK Proxy для интерфейсов, CGLIB для классов).\n\n---\n\nAOP (Aspect-Oriented Programming) enables cross-cutting concerns (logging, transactions) without modifying business code. Uses proxy objects (JDK Proxy for interfaces, CGLIB for classes).",
+    "AOP (Аспектно-ориентированное программирование) -- парадигма разделения сквозной функциональности (логирование, транзакции, безопасность) от бизнес-логики. Spring AOP использует прокси-объекты (JDK Dynamic Proxy для интерфейсов, CGLIB для классов).\n\n---\n\nAOP (Aspect-Oriented Programming) separates cross-cutting concerns (logging, transactions, security) from business logic. Spring AOP uses proxy objects (JDK Dynamic Proxy for interfaces, CGLIB for classes).",
   deepDive:
-    "## Spring AOP\n\nАспектно-ориентированное программирование (АОП) -- парадигма, основанная на идее разделения функциональности для улучшения модульности. AOP позволяет внедрять повторяющуюся функциональность (логирование, транзакции, безопасность) без изменения основного бизнес-кода.\n\nСквозная функциональность (cross-cutting concerns) -- логика, которая распределена по различным модулям: логирование, обработка исключений, кэширование, безопасность, транзакции.\n\nSpring AOP использует прокси-объекты:\n- **CGLIB** -- создает прокси через наследование. Проблема: не работает с final методами и классами. Немного бьет по производительности.\n- **JDK Dynamic Proxy** -- создает прокси через интерфейсы. Работает только если бин реализует интерфейс.\n\n---\n\n**AOP Terminology**:\n\n- **Aspect** -- модуль, содержащий сквозную логику. Класс с `@Aspect`.\n- **Join Point** -- точка в программе, где может быть применен аспект (в Spring AOP -- только выполнение метода).\n- **Pointcut** -- выражение, определяющее, к каким join points применяется advice. Примеры: `execution(* com.example.service.*.*(..))`, `@annotation(Loggable)`.\n- **Advice** -- действие, выполняемое аспектом в определенный момент:\n  - `@Before` -- до метода\n  - `@After` -- после метода (всегда, как finally)\n  - `@AfterReturning` -- после успешного завершения\n  - `@AfterThrowing` -- после исключения\n  - `@Around` -- оборачивает метод полностью (самый мощный)\n- **Weaving** -- процесс связывания аспектов с целевыми объектами. Spring AOP использует runtime weaving через прокси.\n\n**How Spring AOP works**: When a bean has applicable aspects, Spring wraps it in a proxy during BeanPostProcessor.postProcessAfterInitialization(). The proxy intercepts method calls and applies advice logic. The original bean instance is inside the proxy.\n\n**CGLIB vs JDK Dynamic Proxy**:\n- CGLIB (default in Spring Boot): creates a subclass of the target class. Works with any class. Cannot proxy final methods/classes.\n- JDK Proxy: creates a proxy implementing the same interfaces. Only works with interface-based beans.\n\nSince Spring Boot 2.0, CGLIB is the default (proxyTargetClass=true). This is why `@Transactional` on a class without an interface still works.\n\n**Limitations**: Spring AOP only intercepts external method calls through the proxy. Self-invocation (calling methods within the same object) bypasses AOP advice.",
-  code: `// Enable AOP
-@Configuration
-@EnableAspectJAutoProxy
-public class AopConfig { }
-
-// Logging aspect
+    "## Spring AOP\n\n" +
+    "Аспектно-ориентированное программирование -- парадигма, основанная на разделении функциональности для улучшения модульности.\n\n" +
+    "AOP позволяет внедрять повторяющуюся функциональность (логирование, транзакции) без изменения основного бизнес-кода.\n\n" +
+    "Использует **прокси-объекты**:\n" +
+    "- **CGLIB** -- наследование (проблема: final методы)\n" +
+    "- **JDK Dynamic Proxy** -- через интерфейсы\n\n" +
+    "Сквозная функциональность (cross-cutting concerns): логирование, обработка исключений, безопасность, транзакции.\n\n---\n\n" +
+    "## AOP Concepts\n\n" +
+    "- **Aspect** -- a module encapsulating cross-cutting logic (e.g., logging aspect)\n" +
+    "- **Join Point** -- a point in program execution (method call, exception throw)\n" +
+    "- **Pointcut** -- an expression that selects join points (e.g., all methods in service layer)\n" +
+    "- **Advice** -- the action taken at a join point. Types:\n" +
+    "  - `@Before` -- runs before the method\n" +
+    "  - `@After` -- runs after (regardless of outcome)\n" +
+    "  - `@AfterReturning` -- runs after successful return\n" +
+    "  - `@AfterThrowing` -- runs after exception\n" +
+    "  - `@Around` -- wraps the method, controls execution\n" +
+    "- **Weaving** -- linking aspects with target objects. Spring does this at runtime via proxies.\n\n" +
+    "## Proxy Types\n\n" +
+    "- **JDK Dynamic Proxy:** Used when the bean implements an interface. Proxy implements the same interface.\n" +
+    "- **CGLIB Proxy:** Used when no interface. Creates a subclass of the target. Cannot proxy final methods/classes.\n\n" +
+    "Spring Boot defaults to CGLIB proxies (`spring.aop.proxy-target-class=true`).\n\n" +
+    "## Common Uses\n\n" +
+    "Spring itself uses AOP extensively: `@Transactional`, `@Cacheable`, `@Async`, `@Secured` -- all work through AOP proxies.",
+  code: `// ===== Logging Aspect =====
 @Aspect
 @Component
 public class LoggingAspect {
@@ -21,15 +39,16 @@ public class LoggingAspect {
     private static final Logger log = LoggerFactory.getLogger(LoggingAspect.class);
 
     // Pointcut: all methods in service package
-    @Pointcut("execution(* com.example.service.*.*(..))")
+    @Pointcut("within(com.example.service..*)")
     public void serviceMethods() {}
 
     // Before advice
     @Before("serviceMethods()")
     public void logBefore(JoinPoint jp) {
-        log.info("Calling: {}.{}()",
+        log.info("Calling: {}.{}({})",
             jp.getTarget().getClass().getSimpleName(),
-            jp.getSignature().getName());
+            jp.getSignature().getName(),
+            Arrays.toString(jp.getArgs()));
     }
 
     // Around advice (most powerful)
@@ -37,86 +56,75 @@ public class LoggingAspect {
     public Object logExecutionTime(ProceedingJoinPoint pjp) throws Throwable {
         long start = System.currentTimeMillis();
         try {
-            Object result = pjp.proceed(); // execute the actual method
-            return result;
-        } finally {
-            long duration = System.currentTimeMillis() - start;
-            log.info("{}.{} executed in {} ms",
+            Object result = pjp.proceed();  // execute the method
+            long elapsed = System.currentTimeMillis() - start;
+            log.info("{}.{} completed in {}ms",
                 pjp.getTarget().getClass().getSimpleName(),
-                pjp.getSignature().getName(),
-                duration);
+                pjp.getSignature().getName(), elapsed);
+            return result;
+        } catch (Exception e) {
+            log.error("{}.{} failed: {}",
+                pjp.getTarget().getClass().getSimpleName(),
+                pjp.getSignature().getName(), e.getMessage());
+            throw e;
         }
     }
 
-    // After throwing -- log exceptions
+    // After returning
+    @AfterReturning(pointcut = "serviceMethods()", returning = "result")
+    public void logAfterReturning(JoinPoint jp, Object result) {
+        log.info("{} returned: {}", jp.getSignature().getName(), result);
+    }
+
+    // After throwing
     @AfterThrowing(pointcut = "serviceMethods()", throwing = "ex")
-    public void logException(JoinPoint jp, Exception ex) {
-        log.error("Exception in {}.{}: {}",
-            jp.getTarget().getClass().getSimpleName(),
-            jp.getSignature().getName(),
-            ex.getMessage());
+    public void logAfterThrowing(JoinPoint jp, Exception ex) {
+        log.error("{} threw: {}", jp.getSignature().getName(), ex.getMessage());
     }
 }
 
-// Custom annotation-based AOP
+// ===== Custom annotation + aspect =====
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Auditable {
-    String action() default "";
+public @interface RateLimit {
+    int maxRequests() default 100;
+    int periodSeconds() default 60;
 }
 
 @Aspect
 @Component
-public class AuditAspect {
+public class RateLimitAspect {
 
-    private final AuditService auditService;
-
-    @Around("@annotation(auditable)")
-    public Object audit(ProceedingJoinPoint pjp,
-                        Auditable auditable) throws Throwable {
-        String user = SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-        try {
-            Object result = pjp.proceed();
-            auditService.log(user, auditable.action(), "SUCCESS");
-            return result;
-        } catch (Exception ex) {
-            auditService.log(user, auditable.action(), "FAILED");
-            throw ex;
+    @Around("@annotation(rateLimit)")
+    public Object enforce(ProceedingJoinPoint pjp, RateLimit rateLimit)
+            throws Throwable {
+        String key = pjp.getSignature().toShortString();
+        if (isRateLimited(key, rateLimit.maxRequests())) {
+            throw new TooManyRequestsException("Rate limit exceeded");
         }
-    }
-}
-
-// Usage
-@Service
-public class OrderService {
-
-    @Auditable(action = "CREATE_ORDER")
-    public Order createOrder(OrderRequest request) {
-        // AOP will log audit entry automatically
-        return orderRepository.save(new Order(request));
+        return pjp.proceed();
     }
 }`,
   interviewQs: [
     {
       id: "15-2-q0",
-      q: "What is AOP? Name the main concepts: Aspect, Advice, Pointcut, Join Point.",
-      a: "AOP (Aspect-Oriented Programming) separates cross-cutting concerns from business logic. Aspect is a module containing cross-cutting logic (@Aspect class). Join Point is a method execution where an aspect can apply. Pointcut is an expression selecting which join points are targeted. Advice is the action taken: @Before, @After, @AfterReturning, @AfterThrowing, @Around. Common uses: logging, transactions, security, caching.",
+      q: "What is AOP and what problem does it solve? Give examples of cross-cutting concerns.",
+      a: "AOP (Aspect-Oriented Programming) separates cross-cutting concerns from business logic. Cross-cutting concerns are functionalities that span multiple modules: logging, transaction management, security, caching, exception handling. Without AOP, this logic would be duplicated across many classes. AOP lets you define it once in an Aspect and apply it declaratively.",
       difficulty: "junior",
     },
     {
       id: "15-2-q1",
-      q: "How does Spring AOP create proxies? What is the difference between CGLIB and JDK Dynamic Proxy?",
-      a: "Spring creates proxies during bean post-processing. CGLIB (default in Spring Boot) generates a subclass of the target class -- works with any class but cannot proxy final methods/classes. JDK Dynamic Proxy creates a proxy implementing the same interfaces -- only works when the bean implements interfaces. Spring chooses CGLIB by default since Boot 2.0 (proxyTargetClass=true). Both approaches intercept method calls to apply advice. The proxy delegates to the original bean after executing the advice chain.",
+      q: "Explain the difference between @Before, @After, @Around, @AfterReturning, and @AfterThrowing advice types.",
+      a: "@Before runs before the target method. @After runs after regardless of outcome (like finally). @AfterReturning runs only after successful return, can access the return value. @AfterThrowing runs only when an exception is thrown, can access the exception. @Around is the most powerful -- it wraps the method, controls whether it executes (pjp.proceed()), can modify arguments and return value. Use @Around for timing, retry logic, or when you need full control.",
       difficulty: "mid",
     },
     {
       id: "15-2-q2",
-      q: "Why doesn't AOP work with self-invocation? What are the alternatives?",
-      a: "Spring AOP is proxy-based. External calls go through the proxy, triggering advice. But when a method calls another method on 'this', it's a direct Java call bypassing the proxy -- no AOP advice fires. This affects @Transactional, @Cacheable, @Async, and custom aspects. Solutions: (1) Extract the method to a separate service bean, (2) Inject the proxy via @Lazy self-injection or ApplicationContext.getBean(), (3) Use AopContext.currentProxy() (requires exposeProxy=true), (4) Switch to AspectJ compile-time/load-time weaving, which modifies bytecode directly and doesn't rely on proxies.",
+      q: "How does Spring AOP differ from AspectJ? What are the limitations of proxy-based AOP?",
+      a: "Spring AOP uses runtime proxies (JDK or CGLIB), while AspectJ uses compile-time or load-time weaving. Spring AOP limitations: (1) Only method-level join points (no field access, constructor interception). (2) Self-invocation bypasses proxy -- internal calls within a bean don't trigger aspects. (3) Cannot proxy final classes/methods (CGLIB). (4) Only works on Spring-managed beans. AspectJ has none of these limitations but requires a weaving agent. For most applications, Spring AOP is sufficient. Use AspectJ when you need self-invocation support or non-method join points.",
       difficulty: "senior",
     },
   ],
-  tip: "Use `@Around` advice when you need full control over method execution (timing, retry, caching). For simple logging, `@Before` and `@AfterReturning` are sufficient.\n\n---\n\nИспользуйте `@Around` когда нужен полный контроль над выполнением метода (тайминг, retry, кэширование). Для простого логирования достаточно `@Before` и `@AfterReturning`.",
+  tip: "Помните: @Around аспект ДОЛЖЕН вызвать `pjp.proceed()` -- иначе целевой метод не выполнится.\n\n---\n\nRemember: @Around advice MUST call `pjp.proceed()` -- otherwise the target method will not execute.",
   springConnection: null,
 };

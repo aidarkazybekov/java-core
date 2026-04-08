@@ -5,63 +5,90 @@ export const topic: TopicContent = {
   blockId: 18,
   title: "Redis Fundamentals",
   summary:
-    "Redis -- сверхбыстрая in-memory NoSQL база данных (key-value хранилище). Хранит данные в оперативной памяти, обеспечивая операции за микросекунды. Многоцелевая структура данных: строки, списки, множества, хэши. Применения: кэширование, Pub/Sub, очереди сообщений, хранение сессий, rate limiting, геопространственные данные.\n\n---\n\n" +
-    "Redis is an ultra-fast, in-memory NoSQL database (key-value store). It stores data in RAM, providing sub-millisecond operations. Multi-purpose data structures: strings, lists, sets, hashes. Use cases: caching, Pub/Sub, message queues, session storage, rate limiting, geospatial data.",
+    "Redis -- быстрая in-memory NoSQL БД. Применения: кэширование, Pub/Sub, очереди сообщений, сессии, геолокация. Ключи -- строки (до 512MB), значения -- различные структуры данных. Поддерживает до 4+ миллиардов ключей.\n\n---\n\nRedis is a fast in-memory NoSQL database. Use cases: caching, Pub/Sub, message queues, sessions, geospatial. Keys are strings (up to 512MB), values are various data structures. Supports 4+ billion keys.",
   deepDive:
-    "## Что такое Redis?\n\n" +
-    "Redis (Remote Dictionary Server) -- in-memory NoSQL база данных. Одна из самых популярных и любимых технологий среди разработчиков.\n\n" +
-    "**Ключевые характеристики:**\n" +
-    "- Сверхбыстрый (amazingly fast) -- данные хранятся в оперативной памяти\n" +
-    "- Многоцелевые структуры данных (multi-purpose data structures)\n" +
-    "- Simple key-value store -- ключи и значения могут быть любой бинарной строкой\n" +
-    "- Поддерживает до 2^32 ключей (более 4 миллиардов)\n" +
-    "- Максимальный размер значения -- 512 МБ\n\n" +
-    "**Основные сценарии использования:**\n" +
-    "- Кэширование (caching) -- ускорение доступа к часто запрашиваемым данным\n" +
-    "- Pub/Sub -- система публикации и подписки на события\n" +
-    "- Очереди сообщений (message queue)\n" +
-    "- Streaming -- обработка потоков данных\n" +
-    "- Геопространственные данные (GeoSpatial)\n" +
-    "- Хранение сессий (session store)\n" +
-    "- Rate limiting -- ограничение частоты запросов\n\n---\n\n" +
+    "## Redis\n\n" +
+    "- Самая популярная in-memory NoSQL БД\n" +
+    "- Многоцелевая структура данных\n" +
+    "- Применения: Caching, Pub/Sub, Message Queue, Streaming, GeoSpatial\n\n" +
+    "## Key-Value\n\n" +
+    "- Простое хранилище ключ-значение\n" +
+    "- Ключ и значение -- строки, любая бинарная строка может быть ключом\n" +
+    "- До 2^32 ключей (> 4 миллиардов)\n" +
+    "- Максимальный размер значения: 512MB\n\n---\n\n" +
     "## What is Redis?\n\n" +
-    "Redis (Remote Dictionary Server) is an open-source, in-memory data structure store used as a database, cache, message broker, and streaming engine. It keeps the entire dataset in memory, achieving sub-millisecond read/write latency.\n\n" +
-    "**Key characteristics:**\n" +
-    "- **In-memory:** All data lives in RAM. Reads/writes take microseconds instead of milliseconds. Redis achieves 100K+ operations per second on a single node.\n" +
-    "- **Persistence options:** Despite being in-memory, Redis can persist data to disk via RDB snapshots (periodic point-in-time saves) or AOF (Append-Only File, logs every write command). You can use both for maximum durability.\n" +
-    "- **Single-threaded core:** Redis processes commands sequentially on a single thread, eliminating lock contention and race conditions. I/O multiplexing (epoll/kqueue) handles thousands of connections. Since Redis 6, I/O threads handle network read/write, but command execution remains single-threaded.\n" +
-    "- **Rich data structures:** Not just key-value. Supports Strings, Lists, Sets, Sorted Sets, Hashes, Streams, Bitmaps, HyperLogLog, Geospatial indexes.\n\n" +
-    "**Common use cases:**\n" +
-    "- **Caching:** Store frequently accessed data (user profiles, API responses) to reduce database load. TTL (Time-To-Live) auto-expires stale entries.\n" +
-    "- **Session store:** Store HTTP sessions in Redis instead of application memory. Enables stateless app servers and session sharing across instances.\n" +
-    "- **Rate limiting:** Use INCR and EXPIRE to count requests per time window. Simple and atomic.\n" +
-    "- **Pub/Sub:** Real-time messaging between services without polling.\n" +
-    "- **Distributed locks:** SETNX (SET if Not eXists) with TTL for distributed lock implementation (Redisson provides higher-level abstractions).\n" +
-    "- **Leaderboards/Counters:** Sorted Sets with ZINCRBY for real-time rankings.",
+    "Redis (Remote Dictionary Server) is an open-source, in-memory data structure store. It can be used as a database, cache, message broker, and streaming engine.\n\n" +
+    "**Why Redis is fast:**\n" +
+    "- All data in RAM -- no disk I/O for reads/writes\n" +
+    "- Single-threaded event loop -- no lock contention\n" +
+    "- Optimized C implementation with efficient data structures\n" +
+    "- I/O multiplexing (epoll/kqueue)\n\n" +
+    "**Persistence options:**\n" +
+    "- **RDB (snapshots):** periodic point-in-time snapshots to disk. Fast restart, but data between snapshots can be lost.\n" +
+    "- **AOF (Append-Only File):** logs every write operation. More durable but larger files and slower restart.\n" +
+    "- **Hybrid:** RDB + AOF combined for best of both.\n\n" +
+    "**Use cases in Spring Boot:**\n" +
+    "- **Caching:** @Cacheable with Redis backend (spring-boot-starter-data-redis)\n" +
+    "- **Session storage:** spring-session-data-redis for distributed sessions\n" +
+    "- **Rate limiting:** using INCR + EXPIRE\n" +
+    "- **Distributed locks:** Redisson / Spring Integration\n" +
+    "- **Pub/Sub:** real-time messaging between services\n\n" +
+    "**Redis vs Memcached:** Redis supports rich data structures (lists, sets, sorted sets, hashes), persistence, pub/sub, and Lua scripting. Memcached is simpler, multi-threaded, but only supports strings.",
   code: `// ===== Spring Boot Redis Configuration =====
-// build.gradle: implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+// build.gradle: spring-boot-starter-data-redis
 
-// application.yml
-/*
-spring:
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: secret
-      timeout: 2000
-*/
+// application.yml:
+// spring.data.redis.host: localhost
+// spring.data.redis.port: 6379
+// spring.data.redis.password: secret
+// spring.data.redis.timeout: 2000
 
-// ===== Redis as Cache (Spring Cache abstraction) =====
+// ===== RedisTemplate Usage =====
+@Service
+public class RedisService {
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    // Simple string operations
+    public void setKey(String key, String value, Duration ttl) {
+        redisTemplate.opsForValue().set(key, value, ttl);
+    }
+
+    public String getKey(String key) {
+        return (String) redisTemplate.opsForValue().get(key);
+    }
+
+    public Boolean deleteKey(String key) {
+        return redisTemplate.delete(key);
+    }
+
+    // Check existence and TTL
+    public Boolean exists(String key) {
+        return redisTemplate.hasKey(key);
+    }
+
+    // Rate limiting example
+    public boolean isRateLimited(String clientId, int maxRequests) {
+        String key = "rate:" + clientId;
+        Long count = redisTemplate.opsForValue().increment(key);
+        if (count == 1) {
+            redisTemplate.expire(key, Duration.ofMinutes(1));
+        }
+        return count > maxRequests;
+    }
+}
+
+// ===== Redis as Cache Backend =====
 @Configuration
 @EnableCaching
 public class RedisCacheConfig {
 
     @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
+    public RedisCacheManager cacheManager(
+            RedisConnectionFactory factory) {
         RedisCacheConfiguration config = RedisCacheConfiguration
             .defaultCacheConfig()
-            .entryTtl(Duration.ofMinutes(30))
+            .entryTtl(Duration.ofMinutes(10))
             .serializeValuesWith(
                 RedisSerializationContext.SerializationPair
                     .fromSerializer(new GenericJackson2JsonRedisSerializer()));
@@ -72,80 +99,32 @@ public class RedisCacheConfig {
     }
 }
 
-@Service
-public class UserService {
-
-    // Cached: first call hits DB, subsequent calls return from Redis
-    @Cacheable(value = "users", key = "#id")
-    public UserDto findById(Long id) {
-        log.info("Cache miss, querying database for user {}", id);
-        return userRepository.findById(id)
-            .map(this::toDto)
-            .orElseThrow();
-    }
-
-    // Evict cache when data changes
-    @CacheEvict(value = "users", key = "#id")
-    public void updateUser(Long id, UpdateUserRequest request) {
-        User user = userRepository.findById(id).orElseThrow();
-        user.setName(request.name());
-        userRepository.save(user);
-    }
-
-    // Update cache with new value
-    @CachePut(value = "users", key = "#result.id")
-    public UserDto createUser(CreateUserRequest request) {
-        User user = userRepository.save(new User(request.name()));
-        return toDto(user);
-    }
-}
-
-// ===== RedisTemplate for direct operations =====
-@Service
-public class SessionService {
-
-    private final RedisTemplate<String, String> redisTemplate;
-
-    // Simple key-value operations
-    public void saveSession(String sessionId, String userData) {
-        redisTemplate.opsForValue()
-            .set("session:" + sessionId, userData, Duration.ofHours(1));
-    }
-
-    public String getSession(String sessionId) {
-        return redisTemplate.opsForValue().get("session:" + sessionId);
-    }
-
-    // Rate limiting with INCR + EXPIRE
-    public boolean isRateLimited(String userId, int maxRequests) {
-        String key = "rate:" + userId + ":" + Instant.now().getEpochSecond() / 60;
-        Long count = redisTemplate.opsForValue().increment(key);
-        if (count == 1) {
-            redisTemplate.expire(key, Duration.ofMinutes(1));
-        }
-        return count > maxRequests;
-    }
+// Use @Cacheable as normal -- Redis handles storage
+@Cacheable(value = "users", key = "#id")
+public UserDto findById(Long id) {
+    return userRepository.findById(id).map(userMapper::toDto)
+        .orElseThrow();
 }`,
   interviewQs: [
     {
       id: "18-3-q0",
-      q: "Что такое Redis и для чего он используется? / What is Redis and what is it used for?",
-      a: "Redis -- in-memory NoSQL база данных (key-value хранилище). Данные хранятся в оперативной памяти, обеспечивая операции за микросекунды. Основные применения: кэширование (снижение нагрузки на БД), хранение сессий, Pub/Sub, очереди сообщений, rate limiting, геопространственные данные, распределённые блокировки. // Redis is an in-memory NoSQL key-value store. Data lives in RAM, providing sub-millisecond operations. Used for: caching, session storage, Pub/Sub, message queues, rate limiting, distributed locks.",
+      q: "What is Redis and what are its main use cases?",
+      a: "Redis is an in-memory NoSQL data structure store. Main use cases: caching (most common), session storage, rate limiting, Pub/Sub messaging, leaderboards (sorted sets), distributed locks, real-time analytics, geospatial queries. It is extremely fast because all data lives in RAM with a single-threaded event loop.",
       difficulty: "junior",
     },
     {
       id: "18-3-q1",
-      q: "How does Redis persist data if it is an in-memory database?",
-      a: "Redis offers two persistence mechanisms: (1) RDB (Redis Database) snapshots -- periodic point-in-time snapshots saved to disk (e.g., every 5 minutes if 100+ keys changed). Fast recovery but can lose data between snapshots. (2) AOF (Append-Only File) -- logs every write command to a file. On restart, Redis replays the log. Options: fsync every second (default, at most 1 second of data loss), fsync every command (safest but slowest), never fsync (OS decides). You can use both: AOF for durability, RDB for faster backup/restore. Redis 7 uses multi-part AOF for better rewrite performance.",
+      q: "How does Redis persistence work? Explain RDB vs AOF.",
+      a: "RDB (Redis Database): creates point-in-time snapshots at configured intervals (e.g., every 5 min if 100+ keys changed). Fast restart, compact files, but data between snapshots can be lost on crash. AOF (Append-Only File): logs every write command. More durable (can be configured to fsync every second or every command) but larger files and slower restart. Hybrid mode uses RDB for fast restart + AOF for durability. Choose based on your durability vs performance trade-off.",
       difficulty: "mid",
     },
     {
       id: "18-3-q2",
-      q: "Why is Redis single-threaded, and how does it still achieve high throughput?",
-      a: "Redis processes commands on a single thread to avoid locking overhead, context switching, and race conditions. All operations are atomic by nature of single-threaded execution. Despite being single-threaded, Redis achieves 100K+ ops/sec because: (1) all data is in memory -- no disk I/O latency; (2) I/O multiplexing (epoll/kqueue) handles thousands of connections on one thread; (3) operations are O(1) or O(log n) -- no long-running commands block others; (4) since Redis 6, I/O threads handle network read/write in parallel while command execution remains single-threaded. The bottleneck is usually network bandwidth, not CPU. For CPU-bound workloads (Lua scripts, big key operations), Redis Cluster distributes load across multiple nodes.",
+      q: "How would you implement distributed caching with Redis in a microservices architecture?",
+      a: "Use spring-boot-starter-data-redis with @Cacheable for transparent caching. Key considerations: (1) Serialization: use JSON (GenericJackson2JsonRedisSerializer) for cross-service compatibility. (2) Key naming: prefix with service name to avoid collisions. (3) TTL: always set expiration to prevent stale data. (4) Cache invalidation: use @CacheEvict on writes, or Redis pub/sub for cross-service invalidation. (5) Connection pooling: configure Lettuce pool (default) with appropriate sizes. (6) Failover: use Redis Sentinel or Cluster for HA. (7) Circuit breaker: gracefully degrade to DB on Redis failure.",
       difficulty: "senior",
     },
   ],
-  tip: "Всегда устанавливайте TTL (время жизни) для кэшированных ключей. Без TTL Redis будет накапливать данные, пока не закончится память -- тогда начнёт работать политика вытеснения (eviction).",
+  tip: "Всегда устанавливайте TTL для ключей Redis -- без него ключи живут вечно и занимают память.\n\n---\n\nAlways set TTL for Redis keys -- without it, keys live forever and consume memory.",
   springConnection: null,
 };
