@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { TopicContent as TopicContentType, ProgressState } from "@/lib/types";
 import { loadProgress, saveProgress, toggleComplete } from "@/lib/progress";
 import { updateSRState, getDueCards } from "@/lib/spaced-repetition";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { ROADMAP } from "@/data/roadmap";
 import Sidebar from "@/components/Sidebar";
 import TopicContentView from "@/components/TopicContent";
 import AskDeeper from "@/components/AskDeeper";
@@ -15,6 +16,11 @@ interface TopicClientProps {
   blockTitle: string;
   highlightedCode: string;
 }
+
+// Flatten all topics into a single ordered list for prev/next navigation
+const allTopics = ROADMAP.flatMap((block) =>
+  block.topics.map((t) => ({ id: t.id, title: t.title }))
+);
 
 export default function TopicClient({
   content,
@@ -33,6 +39,15 @@ export default function TopicClient({
   const completed = new Set(progress.completed);
   const dueCount = getDueCards(progress).length;
 
+  // Compute prev/next topics
+  const { prevTopic, nextTopic } = useMemo(() => {
+    const idx = allTopics.findIndex((t) => t.id === content.id);
+    return {
+      prevTopic: idx > 0 ? allTopics[idx - 1] : null,
+      nextTopic: idx < allTopics.length - 1 ? allTopics[idx + 1] : null,
+    };
+  }, [content.id]);
+
   const handleMarkDone = () => {
     setProgress((prev) => toggleComplete(prev, content.id));
   };
@@ -44,6 +59,21 @@ export default function TopicClient({
   const handleSelectTopic = (topicId: string) => {
     router.push(`/topic/${topicId}`);
   };
+
+  // Keyboard shortcuts: arrow left/right for prev/next
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Don't navigate if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowLeft" && prevTopic) {
+        router.push(`/topic/${prevTopic.id}`);
+      } else if (e.key === "ArrowRight" && nextTopic) {
+        router.push(`/topic/${nextTopic.id}`);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [prevTopic, nextTopic, router]);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -83,8 +113,11 @@ export default function TopicClient({
           isDone={completed.has(content.id)}
           highlightedCode={highlightedCode}
           progress={progress}
+          prevTopic={prevTopic}
+          nextTopic={nextTopic}
           onMarkDone={handleMarkDone}
           onRate={handleRate}
+          onNavigate={handleSelectTopic}
         />
         <AskDeeper topicTitle={content.title} content={content} />
       </div>

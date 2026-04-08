@@ -8,11 +8,19 @@ import CodeTab from "./CodeTab";
 import InterviewTab from "./InterviewTab";
 import SpringTab from "./SpringTab";
 
+interface TopicNav {
+  id: string;
+  title: string;
+}
+
 interface TopicContentProps {
   content: TopicContentType;
   blockTitle: string;
   isDone: boolean;
   highlightedCode: string;
+  prevTopic?: TopicNav | null;
+  nextTopic?: TopicNav | null;
+  onNavigate?: (topicId: string) => void;
   progress: ProgressState;
   onMarkDone: () => void;
   onRate: (questionId: string, quality: number) => void;
@@ -33,8 +41,11 @@ export default function TopicContentView({
   isDone,
   highlightedCode,
   progress,
+  prevTopic,
+  nextTopic,
   onMarkDone,
   onRate,
+  onNavigate,
 }: TopicContentProps) {
   const [activeTab, setActiveTab] = useState<TabId>("learn");
 
@@ -103,6 +114,34 @@ export default function TopicContentView({
           {activeTab === "spring" && <SpringTab content={content} />}
         </motion.div>
       </AnimatePresence>
+
+      {/* Prev / Next navigation */}
+      {onNavigate && (prevTopic || nextTopic) && (
+        <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+          {prevTopic ? (
+            <button
+              onClick={() => onNavigate(prevTopic.id)}
+              className="flex items-center gap-2 text-sm text-text-muted hover:text-text-secondary transition-colors"
+            >
+              <span>←</span>
+              <span className="truncate max-w-[200px]">{prevTopic.title}</span>
+            </button>
+          ) : (
+            <div />
+          )}
+          {nextTopic ? (
+            <button
+              onClick={() => onNavigate(nextTopic.id)}
+              className="flex items-center gap-2 text-sm text-accent-green hover:text-accent-cyan transition-colors"
+            >
+              <span className="truncate max-w-[200px]">{nextTopic.title}</span>
+              <span>→</span>
+            </button>
+          ) : (
+            <div />
+          )}
+        </div>
+      )}
     </div>
   );
 }
