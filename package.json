@@ -5,11 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cloudflare": "npx @opennextjs/cloudflare build",
+    "preview:cloudflare": "npx wrangler dev",
+    "deploy:cloudflare": "npx wrangler deploy",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
+    "@opennextjs/cloudflare": "^1.18.1",
     "framer-motion": "^12.38.0",
     "next": "16.2.2",
     "react": "19.2.4",
