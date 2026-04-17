@@ -6,6 +6,7 @@ import { ROADMAP, TOTAL_TOPICS } from "@/data/roadmap";
 import { Block } from "@/lib/types";
 import ProgressBar from "./ProgressBar";
 import ProgressRing from "./ProgressRing";
+import LanguageToggle from "./LanguageToggle";
 
 interface SidebarProps {
   completed: Set<string>;
@@ -81,7 +82,12 @@ export default function Sidebar({
           )}
         </div>
         {(mobile || !collapsed) && (
-          <ProgressBar completed={completed.size} total={TOTAL_TOPICS} />
+          <>
+            <div className="flex items-center justify-end mb-2">
+              <LanguageToggle />
+            </div>
+            <ProgressBar completed={completed.size} total={TOTAL_TOPICS} />
+          </>
         )}
         {(mobile || !collapsed) && dueCount > 0 && (
           <button

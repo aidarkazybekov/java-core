@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { InterviewQuestion } from "@/lib/types";
+import { localized, t, useLocale } from "@/lib/i18n";
 
 interface QuizModeProps {
   questions: { question: InterviewQuestion; topicTitle: string; blockTitle: string }[];
@@ -10,14 +11,14 @@ interface QuizModeProps {
   onClose: () => void;
 }
 
-const RATING_BUTTONS = [
-  { label: "Again", quality: 0, color: "bg-accent-red/10 border-accent-red/30 text-accent-red hover:bg-accent-red/20" },
-  { label: "Hard", quality: 3, color: "bg-accent-amber/10 border-accent-amber/30 text-accent-amber hover:bg-accent-amber/20" },
-  { label: "Good", quality: 4, color: "bg-accent-green/10 border-accent-green/30 text-accent-green hover:bg-accent-green/20" },
-  { label: "Easy", quality: 5, color: "bg-accent-cyan/10 border-accent-cyan/30 text-accent-cyan hover:bg-accent-cyan/20" },
-];
-
 export default function QuizMode({ questions, onRate, onClose }: QuizModeProps) {
+  const { locale } = useLocale();
+  const RATING_BUTTONS = [
+    { label: t("again", locale), quality: 0, color: "bg-accent-red/10 border-accent-red/30 text-accent-red hover:bg-accent-red/20" },
+    { label: t("hard", locale), quality: 3, color: "bg-accent-amber/10 border-accent-amber/30 text-accent-amber hover:bg-accent-amber/20" },
+    { label: t("good", locale), quality: 4, color: "bg-accent-green/10 border-accent-green/30 text-accent-green hover:bg-accent-green/20" },
+    { label: t("easy", locale), quality: 5, color: "bg-accent-cyan/10 border-accent-cyan/30 text-accent-cyan hover:bg-accent-cyan/20" },
+  ];
   const [currentIdx, setCurrentIdx] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
@@ -143,8 +144,8 @@ export default function QuizMode({ questions, onRate, onClose }: QuizModeProps) 
             </div>
 
             {/* Question */}
-            <h2 className="text-xl font-semibold text-text-primary leading-relaxed mb-8">
-              {current.question.q}
+            <h2 className="text-xl font-semibold text-text-primary leading-relaxed mb-8 whitespace-pre-line">
+              {localized(current.question.q, locale)}
             </h2>
 
             {/* Answer */}
@@ -161,7 +162,9 @@ export default function QuizMode({ questions, onRate, onClose }: QuizModeProps) 
                 animate={{ opacity: 1, y: 0 }}
               >
                 <div className="p-5 rounded-lg bg-[#0f1a0f] border border-[#1e3a2a] mb-6">
-                  <p className="text-[14px] text-[#86efac] leading-[1.8]">{current.question.a}</p>
+                  <p className="text-[14px] text-[#86efac] leading-[1.8] whitespace-pre-line">
+                    {localized(current.question.a, locale)}
+                  </p>
                 </div>
 
                 {/* Rating buttons */}
