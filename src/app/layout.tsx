@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Providers from "./providers";
 
 export const metadata: Metadata = {
   title: "Java Core — Interview Prep",
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark">
-      <body className="min-h-screen bg-bg-primary">{children}</body>
+      <body className="min-h-screen bg-bg-primary">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
