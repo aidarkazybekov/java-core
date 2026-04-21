@@ -34,7 +34,7 @@ export default function ReadingProgress({ scrollRef }: ReadingProgressProps) {
   }, [scrollRef]);
 
   return (
-    <div className="sticky top-0 left-0 right-0 h-[2px] bg-transparent z-20 pointer-events-none">
+    <div className="h-[2px] bg-transparent pointer-events-none">
       <div
         className="h-full bg-gradient-to-r from-accent-green to-accent-cyan transition-[width] duration-75 ease-out"
         style={{ width: `${pct}%` }}
