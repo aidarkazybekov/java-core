@@ -11,6 +11,7 @@ import InterviewTab from "./InterviewTab";
 import SpringTab from "./SpringTab";
 import ReadingProgress from "./ReadingProgress";
 import TableOfContents from "./TableOfContents";
+import StudyStats from "./StudyStats";
 
 interface TopicNav {
   id: string;
@@ -92,8 +93,8 @@ export default function TopicContentView({
 
   return (
     <div ref={scrollRef} className="flex-1 overflow-auto relative">
-      <div className="flex gap-8 px-4 sm:px-7">
-        <div className="flex-1 min-w-0 max-w-[860px]">
+      <div className="flex gap-8 px-4 sm:px-7 2xl:gap-10">
+        <div className="flex-1 min-w-0 max-w-[860px] 2xl:max-w-[940px]">
           {/* Sticky header: reading progress + breadcrumb + title + tabs */}
           <div className="sticky top-0 z-20 -mx-4 sm:-mx-7 bg-bg-primary/90 backdrop-blur-sm border-b border-border">
             <ReadingProgress scrollRef={scrollRef} />
@@ -231,9 +232,12 @@ export default function TopicContentView({
         </div>
 
         {showToc && (
-          <aside className="hidden xl:block w-52 shrink-0">
-            <div className="sticky top-28 pt-7">
+          <aside className="hidden xl:block w-52 2xl:w-64 shrink-0">
+            <div className="sticky top-28 pt-7 pb-7">
               <TableOfContents markdown={deepDiveMd} containerRef={scrollRef} />
+              <div className="hidden 2xl:block">
+                <StudyStats content={content} progress={progress} isDone={isDone} />
+              </div>
             </div>
           </aside>
         )}
