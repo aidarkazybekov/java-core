@@ -4,6 +4,7 @@ export const topic: TopicContent = {
   id: "17-2",
   blockId: 17,
   title: "Indexes & Joins",
+  diagram: "sql-index",
   summary:
     "Индекс -- дополнительная структура данных (обычно B-tree), создаваемая поверх таблицы для ускорения поиска. Без индекса СУБД выполняет полное сканирование таблицы. Соединения (JOIN) объединяют строки из нескольких таблиц: INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL JOIN, CROSS JOIN.\n\n---\n\n" +
     "An index is an additional data structure (typically B-tree) built on top of a table to speed up data retrieval. Without an index, the database performs a full table scan. Joins combine rows from multiple tables: INNER JOIN (matching rows only), LEFT/RIGHT JOIN (all from one side), FULL JOIN (all from both), CROSS JOIN (cartesian product).",

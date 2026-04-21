@@ -4,6 +4,7 @@ export const topic: TopicContent = {
   id: "11-3",
   blockId: 11,
   title: "Bean Lifecycle",
+  diagram: "spring-bean-lifecycle",
   summary:
     "Жизненный цикл бина: создание экземпляра, внедрение зависимостей, вызов @PostConstruct, использование, вызов @PreDestroy при остановке контейнера. Spring предоставляет хуки на каждом этапе для кастомизации поведения.\n\n---\n\nThe bean lifecycle follows: instantiation, dependency injection, @PostConstruct callback, active use, and @PreDestroy on container shutdown. Spring provides hooks at each stage for custom initialization and cleanup logic.",
   deepDive:

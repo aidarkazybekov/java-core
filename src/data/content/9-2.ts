@@ -4,6 +4,7 @@ export const topic: TopicContent = {
   id: "9-2",
   blockId: 9,
   title: "Garbage Collection Algorithms",
+  diagram: "garbage-collection",
   summary:
     "The JVM offers several garbage collectors: Serial, Parallel, CMS (deprecated), G1, ZGC, and Shenandoah. Each makes different trade-offs between throughput, latency, and footprint, and choosing the right one depends on your application's requirements.",
   deepDive:
