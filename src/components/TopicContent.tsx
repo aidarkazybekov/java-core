@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopicContent as TopicContentType, ProgressState } from "@/lib/types";
 import { localized, useLocale } from "@/lib/i18n";
@@ -17,6 +17,15 @@ interface TopicNav {
   title: string;
 }
 
+const TABS = [
+  { id: "learn", label: "📖 Learn" },
+  { id: "code", label: "💻 Code" },
+  { id: "interview", label: "🎯 Interview" },
+  { id: "spring", label: "🌱 Spring" },
+] as const;
+
+export type TabId = (typeof TABS)[number]["id"];
+
 interface TopicContentProps {
   content: TopicContentType;
   blockId: number;
@@ -32,16 +41,9 @@ interface TopicContentProps {
   progress: ProgressState;
   onMarkDone: () => void;
   onRate: (questionId: string, quality: number) => void;
+  activeTab: TabId;
+  onTabChange: (t: TabId) => void;
 }
-
-const TABS = [
-  { id: "learn", label: "📖 Learn" },
-  { id: "code", label: "💻 Code" },
-  { id: "interview", label: "🎯 Interview" },
-  { id: "spring", label: "🌱 Spring" },
-] as const;
-
-type TabId = (typeof TABS)[number]["id"];
 
 export default function TopicContentView({
   content,
@@ -58,9 +60,10 @@ export default function TopicContentView({
   onMarkDone,
   onRate,
   onNavigate,
+  activeTab,
+  onTabChange,
 }: TopicContentProps) {
   const { locale } = useLocale();
-  const [activeTab, setActiveTab] = useState<TabId>("learn");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const deepDiveMd = localized(content.deepDive, locale);
@@ -123,15 +126,16 @@ export default function TopicContentView({
               </div>
             </div>
             <div className="flex gap-1 -mb-px px-4 sm:px-7">
-              {TABS.map((tab) => (
+              {TABS.map((tab, i) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => onTabChange(tab.id)}
                   className={`px-4 py-2 text-xs transition-all border-b-2 ${
                     activeTab === tab.id
                       ? "text-accent-green border-accent-green"
                       : "text-text-muted border-transparent hover:text-text-secondary"
                   }`}
+                  aria-label={`${tab.label} (${i + 1})`}
                 >
                   {tab.label}
                 </button>

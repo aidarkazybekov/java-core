@@ -12,6 +12,7 @@ import Sidebar from "@/components/Sidebar";
 import RoadmapGraph from "@/components/RoadmapGraph";
 import SearchDialog from "@/components/SearchDialog";
 import QuizMode from "@/components/QuizMode";
+import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
 
 export default function HomeClient() {
   const router = useRouter();
@@ -23,18 +24,31 @@ export default function HomeClient() {
   const [quizQuestions, setQuizQuestions] = useState<
     { question: { id: string; q: string; a: string; difficulty: "junior" | "mid" | "senior" }; topicTitle: string; blockTitle: string }[]
   >([]);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 767px)");
 
   useEffect(() => {
     setProgress(loadProgress());
   }, []);
 
-  // Global Cmd+K shortcut for search
+  // Global Cmd+K for search, ? for shortcuts help
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const typing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target?.isContentEditable;
+
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setSearchOpen((prev) => !prev);
+        return;
+      }
+      if (typing) return;
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setShortcutsOpen((prev) => !prev);
       }
     };
     window.addEventListener("keydown", handler);
@@ -103,6 +117,11 @@ export default function HomeClient() {
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         onSelectTopic={handleSelectTopic}
+      />
+
+      <KeyboardShortcutsModal
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
       />
 
       {/* Mobile header bar */}
