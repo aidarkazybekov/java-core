@@ -8,12 +8,70 @@ export const topic: TopicContent = {
     "JVM (Java Virtual Machine) -- виртуальная машина, исполняющая байт-код Java. Она является ядром платформы Java: загрузка классов, управление памятью (Heap, Metaspace, Stack), сборка мусора и JIT-компиляция -- все это происходит внутри JVM. Понимание архитектуры JVM критично для диагностики проблем производительности и утечек памяти.\n\n---\n\n" +
     "The JVM is the runtime engine that executes Java bytecode. Understanding its internal architecture — class loading, memory areas, and the execution engine — is foundational to debugging performance issues, memory leaks, and understanding why Java behaves the way it does in production.",
   deepDive:
-    "JVM -- это абстрактная вычислительная машина, которая исполняет байт-код Java. Она состоит из трех основных подсистем: подсистема загрузки классов (ClassLoader), области данных времени выполнения (Runtime Data Areas) и механизм исполнения (Execution Engine). Области памяти: Method Area (Metaspace с Java 8) хранит метаданные классов, Heap -- все объекты, каждый поток имеет свой Stack, PC Register и Native Method Stack. Heap делится на Young Generation (Eden + Survivor) и Old Generation для настройки сборки мусора.\n\n---\n\n" +
-    "The JVM is an abstract computing machine with three major subsystems: the Class Loader Subsystem, the Runtime Data Areas, and the Execution Engine. When you run `java MyApp`, the JVM bootstrap sequence initializes these subsystems, loads your class, and begins executing bytecode.\n\n" +
-    "Runtime Data Areas are where most interview questions focus. The Method Area (Metaspace since Java 8) stores class metadata, constant pools, and static variables — it is shared across all threads. The Heap is the shared memory region where all object instances live, managed by the garbage collector. Each thread gets its own PC Register (tracking the current bytecode instruction), JVM Stack (holding frames for each method call with local variables and operand stacks), and Native Method Stack (for JNI calls). A critical gotcha: local variables live on the stack, but if a local variable references an object, the object itself is on the heap.\n\n" +
-    "The Execution Engine reads bytecode from the method area and executes it. It contains the Interpreter (executes bytecode line by line — slow but starts fast), the JIT Compiler (compiles hot bytecode paths into native machine code for speed), and the Garbage Collector. The interplay between interpreter and JIT is why Java apps warm up over time — initial requests are slow, then performance improves as hot paths get compiled.\n\n" +
-    "Stack memory is automatically reclaimed when a method returns; heap memory requires garbage collection. StackOverflowError means your call stack exceeded its depth (usually infinite recursion). OutOfMemoryError can come from the heap (too many objects), Metaspace (too many loaded classes — common in app servers with classloader leaks), or even native memory. Knowing which area caused the OOM is the first step in diagnosing production issues.\n\n" +
-    "In interviews, you are expected to draw or describe the JVM architecture diagram: ClassLoader feeds into Method Area, objects go to Heap, each thread has its own Stack/PC/Native Stack, and the Execution Engine ties it all together. Knowing that the heap is further divided into Young Generation (Eden + Survivor spaces) and Old Generation is essential for GC tuning discussions.",
+    "## Три подсистемы JVM\n\n" +
+    "JVM — абстрактная вычислительная машина, исполняющая байт-код Java. Состоит из трёх подсистем:\n\n" +
+    "- **Class Loader Subsystem** — загрузка (`.class` → метаданные в Metaspace), связывание (верификация → подготовка static-полей → резолвинг символических ссылок) и инициализация (`<clinit>`).\n" +
+    "- **Runtime Data Areas** — области памяти во время исполнения.\n" +
+    "- **Execution Engine** — интерпретатор + JIT + сборщик мусора.\n\n" +
+    "## Runtime Data Areas\n\n" +
+    "**Общие между всеми потоками (shared):**\n\n" +
+    "- **Heap** — все объекты и массивы. Делится на Young Generation (Eden + S0 + S1) и Old Generation.\n" +
+    "- **Method Area (Metaspace с Java 8)** — метаданные классов, Runtime Constant Pool, `static`-поля, байт-код методов. Находится в native-памяти, не ограничена `-Xmx`.\n\n" +
+    "**Per-thread (у каждого потока свои):**\n\n" +
+    "- **JVM Stack** — фреймы методов (локальные переменные + operand stack + return address).\n" +
+    "- **PC Register** — адрес текущей инструкции байт-кода.\n" +
+    "- **Native Method Stack** — для вызовов через JNI.\n\n" +
+    "> [!gotcha]\n" +
+    "> Локальная переменная-ссылка живёт в стеке, но сам объект, на который она указывает, — в куче. Поэтому `static`-поле — НЕ thread-safe автоматически: оно лежит в Metaspace (shared), и все потоки пишут в одну ячейку.\n\n" +
+    "## Execution Engine\n\n" +
+    "- **Интерпретатор** — выполняет байт-код по инструкции. Старт мгновенный, но медленный.\n" +
+    "- **JIT-компилятор (HotSpot)** — отслеживает горячие методы и компилирует в native-код. Tiered compilation: C1 (быстро, Tier 1–3) → C2 (агрессивные оптимизации: inlining, escape analysis, loop unrolling, Tier 4).\n" +
+    "- **OSR (On-Stack Replacement)** — может скомпилировать метод прямо во время его исполнения (важно для длинного цикла в `main`).\n" +
+    "- **Deoptimization** — если оптимистическое предположение сломано (например, появился новый подкласс), JVM откатывается к интерпретатору.\n\n" +
+    "Именно из-за tiered compilation Java-приложения «прогреваются»: первые запросы — холодные и медленные.\n\n" +
+    "## Области памяти, о которых часто забывают\n\n" +
+    "`-Xmx` ограничивает только heap. Реальное RSS-потребление процесса складывается из:\n\n" +
+    "- Heap (`-Xmx`)\n" +
+    "- Metaspace (`-XX:MaxMetaspaceSize` — ОБЯЗАТЕЛЬНО задавать в проде)\n" +
+    "- CodeCache для JIT-кода (`-XX:ReservedCodeCacheSize`, по умолчанию 240MB)\n" +
+    "- Direct buffers (`-XX:MaxDirectMemorySize`, используется NIO/Netty)\n" +
+    "- Стеки потоков (native-память: N потоков × `-Xss`)\n" +
+    "- GC bookkeeping, card tables, symbol tables\n\n" +
+    "Поэтому RSS процесса обычно в 1.5–2× больше `-Xmx`.\n\n" +
+    "> [!production]\n" +
+    "> Обязательный минимум в проде: `-Xmx`, `-XX:MaxMetaspaceSize`, `-XX:+HeapDumpOnOutOfMemoryError`, `-XX:HeapDumpPath`. Для отладки native-памяти: `-XX:NativeMemoryTracking=summary` + `jcmd <pid> VM.native_memory summary`.\n\n---\n\n" +
+    "## Three JVM subsystems\n\n" +
+    "The JVM is an abstract computing machine that executes Java bytecode. It has three subsystems:\n\n" +
+    "- **Class Loader Subsystem** — loading (`.class` → metadata in Metaspace), linking (verification → preparation of `static` fields → resolution of symbolic refs), and initialization (`<clinit>`).\n" +
+    "- **Runtime Data Areas** — memory regions used while the program runs.\n" +
+    "- **Execution Engine** — interpreter + JIT + garbage collector.\n\n" +
+    "## Runtime Data Areas\n\n" +
+    "**Shared across all threads:**\n\n" +
+    "- **Heap** — all object instances and arrays. Split into Young Generation (Eden + S0 + S1) and Old Generation.\n" +
+    "- **Method Area (Metaspace since Java 8)** — class metadata, Runtime Constant Pool, `static` fields, method bytecode. Lives in native memory, not bounded by `-Xmx`.\n\n" +
+    "**Per-thread (each thread has its own):**\n\n" +
+    "- **JVM Stack** — frames for each method call (local variables + operand stack + return address).\n" +
+    "- **PC Register** — address of the current bytecode instruction.\n" +
+    "- **Native Method Stack** — for JNI calls into native code.\n\n" +
+    "> [!gotcha]\n" +
+    "> A local reference variable lives on the stack, but the object it points to is on the heap. That's also why a `static` field is NOT automatically thread-safe — it lives in Metaspace (shared), and every thread writes to the same slot.\n\n" +
+    "## Execution Engine\n\n" +
+    "- **Interpreter** — executes bytecode instruction-by-instruction. Instant start, slow steady state.\n" +
+    "- **JIT Compiler (HotSpot)** — tracks hot methods and compiles them to native code. Tiered compilation: C1 (fast, Tier 1–3) → C2 (aggressive: inlining, escape analysis, loop unrolling, Tier 4).\n" +
+    "- **OSR (On-Stack Replacement)** — can compile a method *while it's still running* (important for long loops in `main`).\n" +
+    "- **Deoptimization** — if an optimistic assumption is invalidated (e.g. a new subclass appears), JVM falls back to the interpreter.\n\n" +
+    "Tiered compilation is why Java apps need to warm up: the first few requests are cold and slow.\n\n" +
+    "## Memory areas people forget\n\n" +
+    "`-Xmx` only bounds the heap. Real process RSS is the sum of:\n\n" +
+    "- Heap (`-Xmx`)\n" +
+    "- Metaspace (`-XX:MaxMetaspaceSize` — always set this in prod)\n" +
+    "- CodeCache for JIT-compiled code (`-XX:ReservedCodeCacheSize`, default 240MB)\n" +
+    "- Direct buffers (`-XX:MaxDirectMemorySize` — used by NIO, Netty)\n" +
+    "- Thread stacks (native memory: N threads × `-Xss`)\n" +
+    "- GC bookkeeping, card tables, symbol tables\n\n" +
+    "That's why process RSS is typically 1.5–2× the `-Xmx` you configured.\n\n" +
+    "> [!production]\n" +
+    "> Minimum prod flags: `-Xmx`, `-XX:MaxMetaspaceSize`, `-XX:+HeapDumpOnOutOfMemoryError`, `-XX:HeapDumpPath`. For native-memory debugging: `-XX:NativeMemoryTracking=summary` + `jcmd <pid> VM.native_memory summary`.",
   code:
     `// Exploring JVM memory areas at runtime
 public class JvmArchitectureDemo {

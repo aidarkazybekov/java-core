@@ -2,6 +2,7 @@
 
 import { TopicContent } from "@/lib/types";
 import { localized, t, useLocale } from "@/lib/i18n";
+import Markdown from "./Markdown";
 
 interface SpringTabProps {
   content: TopicContent;
@@ -47,14 +48,7 @@ export default function SpringTab({ content }: SpringTabProps) {
         <div className="text-[10px] text-text-muted tracking-[2px] uppercase mb-3">
           {t("howConnected", locale)}
         </div>
-        {localizedExplanation
-          .split("\n")
-          .filter((p) => p.trim())
-          .map((para, i) => (
-            <p key={i} className="text-[13px] leading-[1.85] text-text-secondary mb-3.5">
-              {para}
-            </p>
-          ))}
+        <Markdown>{localizedExplanation}</Markdown>
       </div>
     </div>
   );

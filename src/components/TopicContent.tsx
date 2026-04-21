@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopicContent as TopicContentType, ProgressState } from "@/lib/types";
 import LearnTab from "./LearnTab";
 import CodeTab from "./CodeTab";
 import InterviewTab from "./InterviewTab";
 import SpringTab from "./SpringTab";
+import ReadingProgress from "./ReadingProgress";
 
 interface TopicNav {
   id: string;
@@ -48,9 +49,12 @@ export default function TopicContentView({
   onNavigate,
 }: TopicContentProps) {
   const [activeTab, setActiveTab] = useState<TabId>("learn");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="flex-1 overflow-auto p-4 sm:p-7 max-w-[860px]">
+    <div ref={scrollRef} className="flex-1 overflow-auto relative">
+      <ReadingProgress scrollRef={scrollRef} />
+      <div className="p-4 sm:p-7 max-w-[860px]">
       <div className="mb-6">
         <div className="text-[11px] text-accent-green tracking-[2px] uppercase mb-1.5">
           {blockTitle}
@@ -142,6 +146,7 @@ export default function TopicContentView({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }
