@@ -124,20 +124,42 @@ export default function Sidebar({
 
       {!mobile && collapsed && (
         <div className="flex-1 overflow-y-auto py-2 flex flex-col items-center gap-1">
-          {ROADMAP.map((block) => (
-            <button
-              key={block.id}
-              onClick={() => {
-                setCollapsed(false);
-                setExpandedBlocks((prev) => new Set(prev).add(block.id));
-              }}
-              className="p-2 rounded-sm hover:bg-bg-elevated transition-colors"
-              title={block.title}
-              aria-label={`${block.title} — expand sidebar`}
-            >
-              <span className="text-sm" aria-hidden="true">{block.icon}</span>
-            </button>
-          ))}
+          {ROADMAP.map((block) => {
+            const blockDone = block.topics.filter((t) => completed.has(t.id)).length;
+            const allDone = blockDone === block.topics.length;
+            return (
+              <div key={block.id} className="relative group">
+                <button
+                  onClick={() => {
+                    setCollapsed(false);
+                    setExpandedBlocks((prev) => new Set(prev).add(block.id));
+                  }}
+                  className={`p-2 rounded-sm transition-colors flex items-center justify-center w-9 h-9 ${
+                    allDone
+                      ? "text-accent-green"
+                      : "text-text-secondary hover:bg-bg-elevated"
+                  }`}
+                  aria-label={`${block.id}. ${block.title} — expand sidebar`}
+                >
+                  <span className="text-sm" aria-hidden="true">
+                    {block.icon}
+                  </span>
+                </button>
+                <div
+                  role="tooltip"
+                  className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 rounded-md bg-bg-elevated border border-border text-[11px] text-text-primary whitespace-nowrap opacity-0 translate-x-[-4px] transition-[opacity,transform] duration-150 group-hover:opacity-100 group-hover:translate-x-0 group-focus-within:opacity-100 group-focus-within:translate-x-0 z-50 shadow-lg"
+                >
+                  <span className="text-accent-green tracking-wider mr-1.5 text-[10px] font-mono">
+                    {block.id.toString().padStart(2, "0")}
+                  </span>
+                  {block.title}
+                  <span className="ml-2 text-text-muted text-[10px] font-mono">
+                    {blockDone}/{block.topics.length}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </motion.aside>
