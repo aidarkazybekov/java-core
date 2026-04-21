@@ -11,6 +11,7 @@ import Sidebar from "@/components/Sidebar";
 import TopicContentView, { TabId } from "@/components/TopicContent";
 import AskDeeper from "@/components/AskDeeper";
 import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
+import StudySessionOverlay from "@/components/StudySessionOverlay";
 
 interface TopicClientProps {
   content: TopicContentType;
@@ -188,6 +189,7 @@ export default function TopicClient({
       </div>
 
       <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <StudySessionOverlay completedNow={progress.completed} />
     </div>
   );
 }
