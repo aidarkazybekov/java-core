@@ -2,6 +2,7 @@
 
 import { TopicContent } from "@/lib/types";
 import { localized, t, useLocale } from "@/lib/i18n";
+import Markdown from "./Markdown";
 
 interface LearnTabProps {
   content: TopicContent;
@@ -19,29 +20,22 @@ export default function LearnTab({ content }: LearnTabProps) {
         <div className="text-[10px] text-accent-green tracking-[2px] uppercase mb-2">
           {t("summary", locale)}
         </div>
-        <p className="text-[13px] leading-[1.8] text-text-secondary whitespace-pre-line">
-          {summary}
-        </p>
+        <div className="text-[13px] leading-[1.8] text-text-secondary">
+          <Markdown>{summary}</Markdown>
+        </div>
       </div>
       <div>
         <div className="text-[10px] text-text-muted tracking-[2px] uppercase mb-3">
           {t("deepDive", locale)}
         </div>
-        {deepDive
-          .split("\n")
-          .filter((p) => p.trim())
-          .map((para, i) => (
-            <p key={i} className="text-[13px] leading-[1.85] text-text-secondary mb-3.5">
-              {para}
-            </p>
-          ))}
+        <Markdown>{deepDive}</Markdown>
       </div>
       {tip && (
         <div className="p-4 rounded-lg bg-[#12121a] border border-[#2d2d45] border-l-[3px] border-l-accent-amber">
           <div className="text-[10px] text-accent-amber tracking-[2px] uppercase mb-2">
             {t("interviewTip", locale)}
           </div>
-          <p className="text-[13px] leading-[1.7] text-text-secondary whitespace-pre-line">{tip}</p>
+          <Markdown>{tip}</Markdown>
         </div>
       )}
     </div>
