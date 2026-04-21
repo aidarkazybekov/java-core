@@ -121,6 +121,16 @@ function CodeBlock({ className, children }: { className?: string; children: Reac
   );
 }
 
+export function slugify(text: string): string {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
 interface MarkdownProps {
   children: string;
   className?: string;
@@ -133,17 +143,30 @@ export default function Markdown({ children, className = "" }: MarkdownProps) {
         remarkPlugins={[remarkGfm]}
         components={{
           p: ({ children }) => <p className="mb-3.5 leading-[1.85]">{children}</p>,
-          h1: ({ children }) => (
-            <h2 className="text-lg font-semibold text-text-primary mt-6 mb-3">{children}</h2>
-          ),
-          h2: ({ children }) => (
-            <h3 className="text-[15px] font-semibold text-text-primary mt-5 mb-2.5">{children}</h3>
-          ),
-          h3: ({ children }) => (
-            <h4 className="text-[13px] font-semibold text-text-primary mt-4 mb-2 tracking-wide">
-              {children}
-            </h4>
-          ),
+          h1: ({ children }) => {
+            const id = slugify(extractFirstText(children));
+            return (
+              <h2 id={id} className="text-lg font-semibold text-text-primary mt-6 mb-3 scroll-mt-24">
+                {children}
+              </h2>
+            );
+          },
+          h2: ({ children }) => {
+            const id = slugify(extractFirstText(children));
+            return (
+              <h3 id={id} className="text-[15px] font-semibold text-text-primary mt-5 mb-2.5 scroll-mt-24">
+                {children}
+              </h3>
+            );
+          },
+          h3: ({ children }) => {
+            const id = slugify(extractFirstText(children));
+            return (
+              <h4 id={id} className="text-[13px] font-semibold text-text-primary mt-4 mb-2 tracking-wide scroll-mt-24">
+                {children}
+              </h4>
+            );
+          },
           ul: ({ children }) => (
             <ul className="list-disc pl-5 mb-3.5 space-y-1.5 marker:text-text-muted">{children}</ul>
           ),
