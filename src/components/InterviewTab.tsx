@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TopicContent, ProgressState, InterviewQuestion } from "@/lib/types";
+import { TopicContent, ProgressState, InterviewQuestion, SRCard } from "@/lib/types";
 import { localized, t, useLocale } from "@/lib/i18n";
+import { reviewCard } from "@/lib/spaced-repetition";
 import Markdown from "./Markdown";
 
 interface InterviewTabProps {
@@ -15,7 +16,10 @@ interface InterviewTabProps {
 type Difficulty = "junior" | "mid" | "senior";
 type Filter = "all" | Difficulty;
 
-const DIFFICULTY_META: Record<Difficulty, { stripe: string; label: string; dot: string; glow: string }> = {
+const DIFFICULTY_META: Record<
+  Difficulty,
+  { stripe: string; label: string; dot: string; glow: string }
+> = {
   junior: {
     stripe: "border-l-accent-green",
     label: "text-accent-green",
@@ -36,17 +40,36 @@ const DIFFICULTY_META: Record<Difficulty, { stripe: string; label: string; dot: 
   },
 };
 
+function daysUntil(dateStr: string): number {
+  const target = new Date(dateStr).getTime();
+  const now = Date.now();
+  return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+}
+
 export default function InterviewTab({ content, progress, onRate }: InterviewTabProps) {
   const { locale } = useLocale();
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const [rated, setRated] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<Filter>("all");
+  const L = (ru: string, en: string) => (locale === "ru" ? ru : en);
 
   const grouped = useMemo(() => {
     const by: Record<Difficulty, InterviewQuestion[]> = { junior: [], mid: [], senior: [] };
     content.interviewQs.forEach((q) => by[q.difficulty].push(q));
     return by;
   }, [content.interviewQs]);
+
+  const topicStats = useMemo(() => {
+    let rated = 0;
+    let dueNow = 0;
+    content.interviewQs.forEach((q) => {
+      const card = progress.srState[q.id];
+      if (!card) return;
+      rated += 1;
+      if (daysUntil(card.nextReview) <= 0) dueNow += 1;
+    });
+    return { rated, dueNow, total: content.interviewQs.length };
+  }, [content.interviewQs, progress.srState]);
 
   const ratingButtons = [
     { label: t("again", locale), quality: 0, color: "bg-accent-red/10 border-accent-red/30 text-accent-red" },
@@ -71,15 +94,59 @@ export default function InterviewTab({ content, progress, onRate }: InterviewTab
   const sections: Difficulty[] = filter === "all" ? ["junior", "mid", "senior"] : [filter];
   const total = content.interviewQs.length;
 
+  function previewIntervals(card: SRCard | undefined) {
+    // What the interval becomes after each rating (for currently-not-rated state
+    // we synthesize a fresh card).
+    const base: SRCard = card ?? {
+      questionId: "",
+      interval: 0,
+      easeFactor: 2.5,
+      nextReview: new Date().toISOString().split("T")[0],
+      repetitions: 0,
+    };
+    return {
+      0: reviewCard(base, 0).interval,
+      3: reviewCard(base, 3).interval,
+      4: reviewCard(base, 4).interval,
+      5: reviewCard(base, 5).interval,
+    } as Record<number, number>;
+  }
+
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      {/* Compact topic stats strip */}
+      <div className="flex items-center justify-between gap-3 flex-wrap rounded-md border border-border bg-bg-card px-3 py-2">
+        <div className="flex items-center gap-4 text-[11px] text-text-muted">
+          <span>
+            {L("Всего", "Total")}{" "}
+            <span className="text-text-primary font-mono tabular-nums">{topicStats.total}</span>
+          </span>
+          <span className="text-border">·</span>
+          <span>
+            {L("Оценено", "Rated")}{" "}
+            <span className="text-text-primary font-mono tabular-nums">
+              {topicStats.rated}
+            </span>
+          </span>
+          {topicStats.dueNow > 0 && (
+            <>
+              <span className="text-border">·</span>
+              <span className="text-accent-amber">
+                {L("К повтору", "Due now")}{" "}
+                <span className="font-mono tabular-nums">{topicStats.dueNow}</span>
+              </span>
+            </>
+          )}
+        </div>
         <div className="text-[10px] text-text-muted tracking-[2px] uppercase">
           {t("clickToReveal", locale)}
         </div>
+      </div>
+
+      <div className="flex items-center justify-end">
         <div
           role="group"
-          aria-label={locale === "ru" ? "Фильтр по сложности" : "Difficulty filter"}
+          aria-label={L("Фильтр по сложности", "Difficulty filter")}
           className="flex items-center gap-1 p-0.5 rounded-md bg-bg-elevated border border-border"
         >
           {(["all", "junior", "mid", "senior"] as Filter[]).map((f) => {
@@ -103,9 +170,7 @@ export default function InterviewTab({ content, progress, onRate }: InterviewTab
                 }`}
               >
                 {f === "all"
-                  ? locale === "ru"
-                    ? "ВСЕ"
-                    : "ALL"
+                  ? L("ВСЕ", "ALL")
                   : difficultyLabel(f)}
                 <span className="ml-1.5 opacity-60">{count}</span>
               </button>
@@ -133,10 +198,14 @@ export default function InterviewTab({ content, progress, onRate }: InterviewTab
             {qs.map((item) => {
               const globalIdx = content.interviewQs.indexOf(item);
               const isRevealed = revealed.has(item.id);
-              const isRated = rated.has(item.id);
+              const isJustRated = rated.has(item.id);
               const srCard = progress.srState[item.id];
               const qText = localized(item.q, locale);
               const aText = localized(item.a, locale);
+              const hasHistory = Boolean(srCard);
+              const daysTilReview = srCard ? daysUntil(srCard.nextReview) : null;
+              const isDue = daysTilReview !== null && daysTilReview <= 0;
+              const preview = previewIntervals(srCard);
 
               return (
                 <div
@@ -151,6 +220,27 @@ export default function InterviewTab({ content, progress, onRate }: InterviewTab
                       <div className="text-[13px] text-text-primary leading-relaxed">
                         <Markdown>{qText}</Markdown>
                       </div>
+                      {hasHistory && !isJustRated && (
+                        <div className="mt-2 flex items-center gap-2 text-[10px]">
+                          <span
+                            className={`px-1.5 py-0.5 rounded-sm border font-mono tabular-nums ${
+                              isDue
+                                ? "border-accent-amber/30 bg-accent-amber/5 text-accent-amber"
+                                : "border-border bg-bg-elevated text-text-muted"
+                            }`}
+                          >
+                            ×{srCard!.repetitions}
+                          </span>
+                          <span className="text-text-muted">
+                            {isDue
+                              ? L("Готово к повтору сегодня", "Due for review today")
+                              : L(
+                                  `Следующий повтор через ${daysTilReview}д`,
+                                  `Next review in ${daysTilReview}d`
+                                )}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -169,29 +259,53 @@ export default function InterviewTab({ content, progress, onRate }: InterviewTab
                         className="border-t border-border"
                       >
                         <div className="p-4 bg-[#0f1a0f]">
-                          <div className="text-[11px] text-text-muted mb-1.5 tracking-wider">A.</div>
+                          <div className="text-[11px] text-text-muted mb-1.5 tracking-wider">
+                            A.
+                          </div>
                           <div className="text-[13px] text-[#bbf7d0] leading-[1.75]">
                             <Markdown>{aText}</Markdown>
                           </div>
                         </div>
 
-                        {!isRated ? (
-                          <div className="px-4 py-3 border-t border-border bg-bg-elevated flex flex-wrap items-center gap-2">
-                            <span className="text-[10px] text-text-muted mr-2">
-                              {t("rate", locale)}
-                            </span>
-                            {ratingButtons.map((btn) => (
-                              <button
-                                key={btn.quality}
-                                onClick={() => handleRate(item.id, btn.quality)}
-                                className={`px-3 py-1 text-[11px] rounded-sm border ${btn.color} hover:opacity-80 transition-opacity`}
-                              >
-                                {btn.label}
-                              </button>
-                            ))}
+                        {!isJustRated ? (
+                          <div className="px-4 py-3 border-t border-border bg-bg-elevated">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[10px] text-text-muted mr-1">
+                                {t("rate", locale)}
+                              </span>
+                              {ratingButtons.map((btn) => {
+                                const nextInt = preview[btn.quality];
+                                return (
+                                  <button
+                                    key={btn.quality}
+                                    onClick={() => handleRate(item.id, btn.quality)}
+                                    className={`group relative px-3 py-1 text-[11px] rounded-sm border ${btn.color} hover:opacity-80 transition-opacity`}
+                                    title={
+                                      nextInt === 0
+                                        ? L("завтра", "tomorrow")
+                                        : L(`через ${nextInt}д`, `in ${nextInt}d`)
+                                    }
+                                  >
+                                    {btn.label}
+                                    <span className="ml-1.5 opacity-50 font-mono">
+                                      {nextInt === 0 ? "0d" : `${nextInt}d`}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            {hasHistory && (
+                              <div className="mt-2 text-[10px] text-text-muted">
+                                {L(
+                                  `Повторов: ${srCard!.repetitions} · коэффициент ${srCard!.easeFactor.toFixed(2)}`,
+                                  `Reps: ${srCard!.repetitions} · ease ${srCard!.easeFactor.toFixed(2)}`
+                                )}
+                              </div>
+                            )}
                           </div>
                         ) : (
-                          <div className="px-4 py-2 border-t border-border bg-bg-elevated text-[11px] text-text-muted">
+                          <div className="px-4 py-2 border-t border-border bg-bg-elevated text-[11px] text-text-muted flex items-center gap-2">
+                            <span className="text-accent-green">✓</span>
                             {t("rated", locale)} —{" "}
                             {srCard
                               ? `${t("nextReviewIn", locale)} ${srCard.interval} ${t("days", locale)}`
