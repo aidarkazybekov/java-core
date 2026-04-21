@@ -4,6 +4,7 @@ export const topic: TopicContent = {
   id: "8-1",
   blockId: 8,
   title: "Thread Lifecycle",
+  diagram: "thread-lifecycle",
   summary:
     "Java threads transition through NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, and TERMINATED states. Understanding these states and the methods that trigger transitions is foundational for debugging concurrency issues and answering interview questions.",
   deepDive:

@@ -4,6 +4,7 @@ export const topic: TopicContent = {
   id: "7-4",
   blockId: 7,
   title: "Stream API",
+  diagram: "stream-pipeline",
   summary:
     "The Stream API enables declarative, pipeline-based processing of collections. Streams are lazy, single-use, and consist of a source, zero or more intermediate operations, and a terminal operation that triggers computation.",
   deepDive:
