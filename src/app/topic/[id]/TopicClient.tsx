@@ -23,7 +23,13 @@ interface TopicClientProps {
 }
 
 const allTopics = ROADMAP.flatMap((block) =>
-  block.topics.map((t) => ({ id: t.id, title: t.title }))
+  block.topics.map((t) => ({
+    id: t.id,
+    title: t.title,
+    blockId: block.id,
+    blockTitle: block.title,
+    blockIcon: block.icon,
+  }))
 );
 
 export default function TopicClient({
