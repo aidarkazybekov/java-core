@@ -28,10 +28,16 @@ export default async function TopicPage({
     theme: "github-dark-dimmed",
   });
 
+  const topicIndexInBlock = meta.block.topics.findIndex((t) => t.id === id);
+
   return (
     <TopicClient
       content={content}
+      blockId={meta.block.id}
       blockTitle={meta.block.title}
+      blockIcon={meta.block.icon}
+      topicIndexInBlock={topicIndexInBlock}
+      blockTopicCount={meta.block.topics.length}
       highlightedCode={highlightedCode}
     />
   );

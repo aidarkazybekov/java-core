@@ -13,7 +13,11 @@ import AskDeeper from "@/components/AskDeeper";
 
 interface TopicClientProps {
   content: TopicContentType;
+  blockId: number;
   blockTitle: string;
+  blockIcon: string;
+  topicIndexInBlock: number;
+  blockTopicCount: number;
   highlightedCode: string;
 }
 
@@ -24,7 +28,11 @@ const allTopics = ROADMAP.flatMap((block) =>
 
 export default function TopicClient({
   content,
+  blockId,
   blockTitle,
+  blockIcon,
+  topicIndexInBlock,
+  blockTopicCount,
   highlightedCode,
 }: TopicClientProps) {
   const router = useRouter();
@@ -109,7 +117,11 @@ export default function TopicClient({
       <div className={`flex-1 flex flex-col overflow-hidden ${isMobile ? "pt-14" : ""}`}>
         <TopicContentView
           content={content}
+          blockId={blockId}
           blockTitle={blockTitle}
+          blockIcon={blockIcon}
+          topicIndexInBlock={topicIndexInBlock}
+          blockTopicCount={blockTopicCount}
           isDone={completed.has(content.id)}
           highlightedCode={highlightedCode}
           progress={progress}
