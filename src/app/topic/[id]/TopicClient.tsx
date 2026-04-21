@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { TopicContent as TopicContentType, ProgressState } from "@/lib/types";
-import { loadProgress, saveProgress, toggleComplete } from "@/lib/progress";
+import { loadProgress, saveProgress, toggleComplete, updateLastVisited } from "@/lib/progress";
 import { updateSRState, getDueCards } from "@/lib/spaced-repetition";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { ROADMAP } from "@/data/roadmap";
@@ -52,6 +52,13 @@ export default function TopicClient({
   useEffect(() => {
     saveProgress(progress);
   }, [progress]);
+
+  // Record the last visited topic for the home-page "Resume" card.
+  useEffect(() => {
+    setProgress((prev) =>
+      prev.lastVisited === content.id ? prev : updateLastVisited(prev, content.id)
+    );
+  }, [content.id]);
 
   const completed = new Set(progress.completed);
   const dueCount = getDueCards(progress).length;
