@@ -77,7 +77,11 @@ export default function InterviewTab({ content, progress, onRate }: InterviewTab
         <div className="text-[10px] text-text-muted tracking-[2px] uppercase">
           {t("clickToReveal", locale)}
         </div>
-        <div className="flex items-center gap-1 p-0.5 rounded-md bg-bg-elevated border border-border">
+        <div
+          role="group"
+          aria-label={locale === "ru" ? "Фильтр по сложности" : "Difficulty filter"}
+          className="flex items-center gap-1 p-0.5 rounded-md bg-bg-elevated border border-border"
+        >
           {(["all", "junior", "mid", "senior"] as Filter[]).map((f) => {
             const count = f === "all" ? total : grouped[f].length;
             const active = filter === f;
@@ -93,6 +97,7 @@ export default function InterviewTab({ content, progress, onRate }: InterviewTab
               <button
                 key={f}
                 onClick={() => setFilter(f)}
+                aria-pressed={active}
                 className={`px-2.5 py-1 text-[10px] tracking-wider uppercase rounded-sm transition-colors ${
                   active ? `bg-bg-card ${tone}` : "text-text-muted hover:text-text-secondary"
                 }`}

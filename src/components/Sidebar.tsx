@@ -68,16 +68,19 @@ export default function Sidebar({
           {mobile ? (
             <button
               onClick={onClose}
+              aria-label="Close sidebar"
               className="p-1.5 rounded-sm hover:bg-bg-elevated transition-colors text-text-muted text-lg"
             >
-              ✕
+              <span aria-hidden="true">✕</span>
             </button>
           ) : (
             <button
               onClick={() => setCollapsed(!collapsed)}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-expanded={!collapsed}
               className="p-1.5 rounded-sm hover:bg-bg-elevated transition-colors text-text-muted"
             >
-              {collapsed ? "▶" : "◀"}
+              <span aria-hidden="true">{collapsed ? "▶" : "◀"}</span>
             </button>
           )}
         </div>
@@ -130,8 +133,9 @@ export default function Sidebar({
               }}
               className="p-2 rounded-sm hover:bg-bg-elevated transition-colors"
               title={block.title}
+              aria-label={`${block.title} — expand sidebar`}
             >
-              <span className="text-sm">{block.icon}</span>
+              <span className="text-sm" aria-hidden="true">{block.icon}</span>
             </button>
           ))}
         </div>

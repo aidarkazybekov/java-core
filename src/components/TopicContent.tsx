@@ -125,17 +125,23 @@ export default function TopicContentView({
                 </button>
               </div>
             </div>
-            <div className="flex gap-1 -mb-px px-4 sm:px-7">
+            <div
+              role="tablist"
+              aria-label={locale === "ru" ? "Разделы темы" : "Topic sections"}
+              className="flex gap-1 -mb-px px-4 sm:px-7"
+            >
               {TABS.map((tab, i) => (
                 <button
                   key={tab.id}
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  aria-label={`${tab.label} (${i + 1})`}
                   onClick={() => onTabChange(tab.id)}
                   className={`px-4 py-2 text-xs transition-all border-b-2 ${
                     activeTab === tab.id
                       ? "text-accent-green border-accent-green"
                       : "text-text-muted border-transparent hover:text-text-secondary"
                   }`}
-                  aria-label={`${tab.label} (${i + 1})`}
                 >
                   {tab.label}
                 </button>

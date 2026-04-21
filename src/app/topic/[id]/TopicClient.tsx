@@ -127,9 +127,10 @@ export default function TopicClient({
         <div className="fixed top-0 left-0 right-0 z-30 bg-bg-card border-b border-border px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(true)}
+            aria-label="Open sidebar"
             className="p-1 text-text-muted hover:text-text-secondary transition-colors"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
