@@ -4,6 +4,7 @@ export const topic: TopicContent = {
   id: "6-2",
   blockId: 6,
   title: "HashMap Internals",
+  diagram: "hashmap-internals",
   summary:
     "Внутри HashMap хранится массив (по умолчанию размер 16), где каждый элемент называется bucket. Каждый бакет может быть пустым, содержать связанный список или (в Java 8+) красно-черное дерево при 8 и более элементов. При превышении threshold 0.75 массив расширяется в два раза.\n\n---\n\nHashMap is the most frequently asked collection in Java interviews. It uses an array of buckets with hash-based indexing, handles collisions via linked lists that convert to red-black trees at threshold 8, and rehashes when the load factor (0.75) is exceeded.",
   deepDive:
