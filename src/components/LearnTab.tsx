@@ -3,6 +3,7 @@
 import { TopicContent } from "@/lib/types";
 import { localized, t, useLocale } from "@/lib/i18n";
 import Markdown from "./Markdown";
+import Diagram from "./Diagram";
 
 interface LearnTabProps {
   content: TopicContent;
@@ -24,6 +25,7 @@ export default function LearnTab({ content }: LearnTabProps) {
           <Markdown>{summary}</Markdown>
         </div>
       </div>
+      {content.diagram && <Diagram name={content.diagram} />}
       <div>
         <div className="text-[10px] text-text-muted tracking-[2px] uppercase mb-3">
           {t("deepDive", locale)}

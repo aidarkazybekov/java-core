@@ -8,6 +8,7 @@ export interface TopicContent {
   interviewQs: InterviewQuestion[];
   tip: string;
   springConnection: SpringConnection | null;
+  diagram?: string;
 }
 
 export interface SpringConnection {

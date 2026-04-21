@@ -4,6 +4,7 @@ export const topic: TopicContent = {
   id: "1-1",
   blockId: 1,
   title: "JVM Architecture",
+  diagram: "jvm-architecture",
   summary:
     "JVM (Java Virtual Machine) -- виртуальная машина, исполняющая байт-код Java. Она является ядром платформы Java: загрузка классов, управление памятью (Heap, Metaspace, Stack), сборка мусора и JIT-компиляция -- все это происходит внутри JVM. Понимание архитектуры JVM критично для диагностики проблем производительности и утечек памяти.\n\n---\n\n" +
     "The JVM is the runtime engine that executes Java bytecode. Understanding its internal architecture — class loading, memory areas, and the execution engine — is foundational to debugging performance issues, memory leaks, and understanding why Java behaves the way it does in production.",
@@ -353,6 +354,90 @@ public class JvmArchitectureDemo {
         "**6. Fix + proof.** After the fix, run a multi-hour load test while watching Old Gen — the baseline must stabilize, not keep climbing.",
       difficulty: "senior",
     },
+    {
+      id: "1-1-q6",
+      q:
+        "Вы выставили `-Xmx2g`, но `top` показывает, что процесс Java занимает 3.5GB RSS. Куда ушло еще 1.5GB и как это диагностировать?\n\n---\n\n" +
+        "You set `-Xmx2g`, but `top` shows the Java process using 3.5GB RSS. Where did the extra 1.5GB go and how do you investigate?",
+      a:
+        "`-Xmx` ограничивает ТОЛЬКО Java heap. Реальное потребление памяти JVM-процессом = heap + множество других регионов, каждый со своим бюджетом:\n\n" +
+        "**Из чего складывается RSS:**\n" +
+        "- **Heap** (`-Xmx`) -- то, что мы задали.\n" +
+        "- **Metaspace** -- метаданные классов в native memory. Без `-XX:MaxMetaspaceSize` может расти неограниченно.\n" +
+        "- **CodeCache** -- скомпилированный JIT-код. Default `-XX:ReservedCodeCacheSize=240m`. Может забиться в long-running сервисах с большим code path.\n" +
+        "- **Direct Memory** -- `ByteBuffer.allocateDirect()`, Netty ByteBufs, некоторые compression-либы. Ограничение: `-XX:MaxDirectMemorySize` (по умолчанию = `-Xmx`).\n" +
+        "- **Thread stacks** -- native memory: N потоков × `-Xss` (по умолчанию ~1MB). 1000 потоков -- это уже ~1GB.\n" +
+        "- **GC структуры** -- card tables, remembered sets (для G1/ZGC), marking bitmaps.\n" +
+        "- **Symbol Table, String Table** -- native.\n" +
+        "- **JNI-аллокации** -- нативные либы (JDBC-драйверы, libsnappy, jemalloc) могут аллоцировать вне контроля JVM.\n" +
+        "- **Glibc / malloc fragmentation** -- аллокатор может держать \"free\" блоки, не возвращая их ОС.\n\n" +
+        "**Диагностика:**\n\n" +
+        "```\n" +
+        "# 1. Включить Native Memory Tracking (нужен рестарт)\n" +
+        "-XX:NativeMemoryTracking=summary\n" +
+        "\n" +
+        "# 2. Смотреть breakdown\n" +
+        "jcmd <pid> VM.native_memory summary\n" +
+        "jcmd <pid> VM.native_memory summary.diff   # разница с baseline\n" +
+        "\n" +
+        "# 3. Состояние всех регионов\n" +
+        "jcmd <pid> VM.info\n" +
+        "jcmd <pid> VM.flags                        # все активные флаги\n" +
+        "jstat -gcutil <pid>                        # использование GC\n" +
+        "\n" +
+        "# 4. Потоки\n" +
+        "jcmd <pid> Thread.print | grep -c '^\"'    # количество потоков\n" +
+        "\n" +
+        "# 5. Для direct memory (JMX bean)\n" +
+        "jcmd <pid> GC.run                          # форсировать GC\n" +
+        "# и смотреть java.nio:type=BufferPool через JMX\n" +
+        "```\n\n" +
+        "**Типичные виновники \"невидимой\" памяти:**\n" +
+        "- Netty / Kafka client -- direct buffers не ограничены.\n" +
+        "- JDBC-пул с тысячами connection'ов -- каждый держит native ресурсы.\n" +
+        "- Неправильная настройка thread-pool'а (Tomcat maxThreads=500+) -- стеки тихо сжирают GB.\n" +
+        "- Glibc arena fragmentation -- решается `MALLOC_ARENA_MAX=2` env variable или переходом на jemalloc.\n\n" +
+        "**Правило для прода:** rough-бюджет RSS = `-Xmx` × 1.5-2×. Если больше -- разбирайтесь с NMT.\n\n---\n\n" +
+        "`-Xmx` bounds ONLY the Java heap. Real process memory = heap + a pile of other regions, each with its own budget:\n\n" +
+        "**What RSS is composed of:**\n" +
+        "- **Heap** (`-Xmx`) — what you configured.\n" +
+        "- **Metaspace** — class metadata in native memory. Without `-XX:MaxMetaspaceSize` it grows unbounded.\n" +
+        "- **CodeCache** — JIT-compiled code. Default `-XX:ReservedCodeCacheSize=240m`. Can fill up in long-running services with large code paths.\n" +
+        "- **Direct Memory** — `ByteBuffer.allocateDirect()`, Netty ByteBufs, some compression libs. Limit: `-XX:MaxDirectMemorySize` (defaults to `-Xmx`).\n" +
+        "- **Thread stacks** — native memory: N threads × `-Xss` (default ~1MB). 1000 threads ≈ 1GB.\n" +
+        "- **GC structures** — card tables, remembered sets (G1/ZGC), marking bitmaps.\n" +
+        "- **Symbol Table, String Table** — native.\n" +
+        "- **JNI allocations** — native libraries (JDBC drivers, libsnappy, jemalloc) can allocate outside JVM bookkeeping.\n" +
+        "- **Glibc / malloc fragmentation** — allocator may hold onto 'free' blocks without returning them to the OS.\n\n" +
+        "**Diagnosis:**\n\n" +
+        "```\n" +
+        "# 1. Enable Native Memory Tracking (requires restart)\n" +
+        "-XX:NativeMemoryTracking=summary\n" +
+        "\n" +
+        "# 2. Inspect the breakdown\n" +
+        "jcmd <pid> VM.native_memory summary\n" +
+        "jcmd <pid> VM.native_memory summary.diff   # delta since baseline\n" +
+        "\n" +
+        "# 3. All region states\n" +
+        "jcmd <pid> VM.info\n" +
+        "jcmd <pid> VM.flags                        # all active flags\n" +
+        "jstat -gcutil <pid>                        # GC utilization\n" +
+        "\n" +
+        "# 4. Threads\n" +
+        "jcmd <pid> Thread.print | grep -c '^\"'    # thread count\n" +
+        "\n" +
+        "# 5. Direct memory (via JMX)\n" +
+        "jcmd <pid> GC.run                          # force a GC first\n" +
+        "# then inspect java.nio:type=BufferPool over JMX\n" +
+        "```\n\n" +
+        "**Common culprits for 'invisible' memory:**\n" +
+        "- Netty / Kafka client — direct buffers aren't bounded by `-Xmx`.\n" +
+        "- JDBC pool with thousands of connections — each holds native resources.\n" +
+        "- Wrong thread-pool sizing (Tomcat maxThreads=500+) — stacks silently eat GBs.\n" +
+        "- Glibc arena fragmentation — fix with `MALLOC_ARENA_MAX=2` or switch to jemalloc.\n\n" +
+        "**Rule of thumb for prod:** RSS budget ≈ `-Xmx` × 1.5–2×. If higher, dig in with NMT.",
+      difficulty: "senior",
+    },
   ],
   tip: "Когда слышите вопрос 'где X живет в памяти?', думайте так: статика/метаданные классов -> Metaspace, объекты -> Heap, локальные переменные-ссылки -> Stack (но объект, на который они указывают, все равно в Heap).\n\n---\n\n" +
     "When you hear 'where does X live in memory?', think: static/class metadata -> Metaspace, objects -> Heap, local variable references -> Stack (but the object they point to is still on the heap).",
@@ -360,6 +445,17 @@ public class JvmArchitectureDemo {
     concept: "JVM Memory Areas",
     springFeature: "Spring Application Context & Bean Scopes",
     explanation:
-      "Spring singleton beans live as objects on the heap for the entire application lifetime, referenced by the ApplicationContext. Prototype-scoped beans are also on the heap but become eligible for GC once your code releases the reference. Understanding heap vs. Metaspace matters for diagnosing Spring Boot memory issues — a large number of proxy classes (from AOP, CGLIB) can bloat Metaspace, while too many singleton beans with large state can exhaust the heap.",
+      "Spring singleton-бины живут как объекты в Heap в течение всей жизни приложения, на них держит ссылку `ApplicationContext`. Prototype-бины тоже лежат в Heap, но становятся доступными для GC сразу после того, как ваш код отпустит ссылку.\n\n" +
+      "Почему это важно для диагностики Spring Boot:\n" +
+      "- Много прокси-классов (AOP, CGLIB) раздувают Metaspace -- каждая прокси-обертка это отдельный сгенерированный класс.\n" +
+      "- Слишком много singleton-бинов с большим state'ом исчерпают Heap.\n" +
+      "- `@Cacheable` без политики вытеснения -- классическая утечка: коллекция растет, ссылки держатся из singleton-сервиса, GC не может ничего освободить.\n" +
+      "- ApplicationContext, не закрытый правильно при перезагрузке (актуально для embedded Tomcat + hot-reload), не даст выгрузиться classloader'у -> Metaspace leak.\n\n---\n\n" +
+      "Spring singleton beans live as objects on the heap for the entire application lifetime, referenced by the `ApplicationContext`. Prototype-scoped beans are also on the heap but become eligible for GC once your code releases the reference.\n\n" +
+      "Why this matters for diagnosing Spring Boot issues:\n" +
+      "- A large number of proxy classes (from AOP, CGLIB) bloats Metaspace — each proxy is a separately generated class.\n" +
+      "- Too many singleton beans holding large state will exhaust the heap.\n" +
+      "- `@Cacheable` without an eviction policy is a classic leak — the map keeps growing, referenced from a singleton service, GC can never reclaim.\n" +
+      "- An `ApplicationContext` that isn't shut down cleanly on reload (common with embedded Tomcat + hot-reload) prevents classloader unload → Metaspace leak.",
   },
 };
