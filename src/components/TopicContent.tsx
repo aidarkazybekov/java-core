@@ -15,6 +15,9 @@ import TableOfContents from "./TableOfContents";
 interface TopicNav {
   id: string;
   title: string;
+  blockId: number;
+  blockTitle: string;
+  blockIcon: string;
 }
 
 const TABS = [
@@ -170,14 +173,30 @@ export default function TopicContentView({
             </AnimatePresence>
 
             {onNavigate && (prevTopic || nextTopic) && (
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+              <nav
+                aria-label={locale === "ru" ? "Навигация по темам" : "Topic navigation"}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 pt-6 border-t border-border"
+              >
                 {prevTopic ? (
                   <button
                     onClick={() => onNavigate(prevTopic.id)}
-                    className="flex items-center gap-2 text-sm text-text-muted hover:text-text-secondary transition-colors"
+                    className="group text-left rounded-lg border border-border bg-bg-card hover:border-text-muted transition-colors p-3"
                   >
-                    <span>←</span>
-                    <span className="truncate max-w-[200px]">{prevTopic.title}</span>
+                    <div className="flex items-center gap-1.5 text-[10px] text-text-muted tracking-[2px] uppercase mb-1">
+                      <span aria-hidden="true">←</span>
+                      <span>{locale === "ru" ? "Предыдущая" : "Previous"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm leading-none" aria-hidden="true">
+                        {prevTopic.blockIcon}
+                      </span>
+                      <span className="text-[13px] text-text-primary group-hover:text-accent-green transition-colors truncate">
+                        {prevTopic.title}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-text-muted mt-1 truncate">
+                      {locale === "ru" ? "Блок" : "Block"} {prevTopic.blockId} · {prevTopic.blockTitle}
+                    </div>
                   </button>
                 ) : (
                   <div />
@@ -185,15 +204,28 @@ export default function TopicContentView({
                 {nextTopic ? (
                   <button
                     onClick={() => onNavigate(nextTopic.id)}
-                    className="flex items-center gap-2 text-sm text-accent-green hover:text-accent-cyan transition-colors"
+                    className="group text-right rounded-lg border border-border bg-bg-card hover:border-accent-green/60 transition-colors p-3"
                   >
-                    <span className="truncate max-w-[200px]">{nextTopic.title}</span>
-                    <span>→</span>
+                    <div className="flex items-center justify-end gap-1.5 text-[10px] text-accent-green tracking-[2px] uppercase mb-1">
+                      <span>{locale === "ru" ? "Следующая" : "Next"}</span>
+                      <span aria-hidden="true">→</span>
+                    </div>
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-[13px] text-text-primary group-hover:text-accent-green transition-colors truncate">
+                        {nextTopic.title}
+                      </span>
+                      <span className="text-sm leading-none" aria-hidden="true">
+                        {nextTopic.blockIcon}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-text-muted mt-1 truncate">
+                      {locale === "ru" ? "Блок" : "Block"} {nextTopic.blockId} · {nextTopic.blockTitle}
+                    </div>
                   </button>
                 ) : (
                   <div />
                 )}
-              </div>
+              </nav>
             )}
           </div>
         </div>
