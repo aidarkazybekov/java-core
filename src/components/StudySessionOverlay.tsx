@@ -41,8 +41,8 @@ export default function StudySessionOverlay({ completedNow }: Props) {
 
   return (
     <>
-      {/* Floating pill (bottom-right to avoid clashing with mobile top bar) */}
-      <div className="fixed bottom-4 right-4 z-40 pointer-events-none">
+      {/* Floating pill (top-right, leaves bottom-right for Ask Deeper) */}
+      <div className="fixed top-4 right-4 z-40 pointer-events-none">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
