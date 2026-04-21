@@ -14,6 +14,9 @@ import BlockGrid from "@/components/BlockGrid";
 import SearchDialog from "@/components/SearchDialog";
 import QuizMode from "@/components/QuizMode";
 import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
+import StudySessionSetup from "@/components/StudySessionSetup";
+import StudySessionOverlay from "@/components/StudySessionOverlay";
+import { useStudySession, SessionConfig } from "@/lib/study-session";
 
 export default function HomeClient() {
   const router = useRouter();
@@ -28,7 +31,18 @@ export default function HomeClient() {
     { question: { id: string; q: string; a: string; difficulty: "junior" | "mid" | "senior" }; topicTitle: string; blockTitle: string }[]
   >([]);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [sessionSetupOpen, setSessionSetupOpen] = useState(false);
+  const session = useStudySession();
   const isMobile = useMediaQuery("(max-width: 767px)");
+
+  const handleStartSession = (config: SessionConfig) => {
+    session.start(config, Array.from(progress.completed));
+    setSessionSetupOpen(false);
+    const firstIncomplete = ROADMAP.flatMap((b) => b.topics).find(
+      (t) => !progress.completed.includes(t.id)
+    );
+    if (firstIncomplete) router.push(`/topic/${firstIncomplete.id}`);
+  };
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -126,6 +140,14 @@ export default function HomeClient() {
         open={shortcutsOpen}
         onClose={() => setShortcutsOpen(false)}
       />
+
+      <StudySessionSetup
+        open={sessionSetupOpen}
+        onClose={() => setSessionSetupOpen(false)}
+        onStart={handleStartSession}
+      />
+
+      <StudySessionOverlay completedNow={progress.completed} />
 
       {/* Mobile header bar */}
       {isMobile && (
@@ -232,7 +254,15 @@ export default function HomeClient() {
                   )}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setSessionSetupOpen(true)}
+                  disabled={session.active !== null}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-accent-green/10 border border-accent-green/30 text-accent-green hover:bg-accent-green/20 transition-colors text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={session.active ? L("Сессия уже идёт", "Session already running") : undefined}
+                >
+                  🎯 {L("Сессия", "Study session")}
+                </button>
                 <button
                   onClick={() => setSearchOpen(true)}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-bg-card border border-border hover:border-text-muted transition-colors text-[12px] text-text-secondary"
