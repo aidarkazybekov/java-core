@@ -129,18 +129,20 @@ export default function HomeClient() {
         <div className="fixed top-0 left-0 right-0 z-30 bg-bg-card border-b border-border px-4 py-3 flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(true)}
+            aria-label="Open sidebar"
             className="p-1 text-text-muted hover:text-text-secondary transition-colors"
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
           <div className="text-sm font-semibold text-text-primary">Java Core</div>
           <button
             onClick={() => setSearchOpen(true)}
+            aria-label="Open search"
             className="p-1 text-text-muted hover:text-text-secondary transition-colors"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5" />
               <path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
