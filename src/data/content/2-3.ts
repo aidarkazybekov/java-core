@@ -5,15 +5,127 @@ export const topic: TopicContent = {
   blockId: 2,
   title: "Operators & Casting",
   summary:
-    "Java является строго типизированным языком, но определен механизм приведения типов (casting). Виды: тождественное (identity), расширение (upcasting) примитивного/объектного типа, сужение (downcasting) примитивного/объектного типа, преобразование к строке. Для проверки возможности приведения используется оператор instanceof. ClassCastException -- ошибка приведения типа.\n\n---\n\n" +
-    "Java's operators and type casting rules are full of non-obvious behavior that trips up even experienced developers. Widening vs narrowing conversions, integer promotion rules, and the quirks of == vs equals() are interview staples that reveal whether you truly understand the type system.",
+    "Java — строго типизированный язык, но поддерживает приведение типов (casting): тождественное, расширение, сужение (примитивов и объектов), преобразование к строке. Арифметика **всегда** продвигает `byte`/`short`/`char` до `int`. `instanceof` проверяет возможность приведения; `ClassCastException` — ошибка в рантайме.\n\n---\n\n" +
+    "Java is strongly typed but supports casting: identity, widening, narrowing (for primitives and objects), and string conversion. Arithmetic **always** promotes `byte`/`short`/`char` to `int`. `instanceof` checks castability at runtime; `ClassCastException` is the failure mode.",
   deepDive:
-    "Java является строго типизированным языком программирования -- каждая переменная имеет строго определенный тип на момент компиляции. Однако определен механизм приведения типов (casting) -- способ преобразования значения переменной одного типа в значение другого типа. В Java существуют несколько разновидностей приведения: тождественное (identity) -- преобразование к такому же типу; расширение (повышение, upcasting) примитивного типа -- переход от менее емкого к более емкому; сужение (понижение, downcasting) примитивного типа; расширение и сужение объектного типа; преобразование к строке. Для проверки возможности приведения нужно использовать оператор instanceof. ClassCastException (потомок RuntimeException) -- ошибка приведения типа.\n\n---\n\n" +
-    "Java performs implicit widening conversions (smaller type to larger type) automatically: byte -> short -> int -> long -> float -> double. Narrowing conversions (larger to smaller) require an explicit cast and can lose data. A subtle trap: `int` to `float` is a widening conversion but can lose precision — int has 32 bits of precision while float only has 24 bits of mantissa. So `(float) 16_777_217` becomes `16_777_216.0`. Similarly, `long` to `double` can lose precision for values above 2^53.\n\n" +
-    "Integer promotion rules: in arithmetic expressions, byte, short, and char are always promoted to int before the operation. This is why `byte a = 1; byte b = 2; byte c = a + b;` does not compile — `a + b` produces an int. You need `byte c = (byte)(a + b);`. This promotion also affects compound assignment: `a += b` compiles because compound assignment operators include an implicit cast. So `byte a = 127; a += 1;` silently overflows to -128 without a compile error — a subtle bug.\n\n" +
-    "The `==` operator compares primitives by value but objects by reference. For String literals, `==` appears to work because of the string pool — `\"hello\" == \"hello\"` is true because both point to the same interned object. But `new String(\"hello\") == \"hello\"` is false. For wrapper types, `==` works within the cache range (-128 to 127 for Integer) and fails outside it. Always use `.equals()` for object comparison.\n\n" +
-    "Instanceof and casting: before Java 16, casting after instanceof required a separate variable declaration: `if (obj instanceof String) { String s = (String) obj; ... }`. Pattern matching (Java 16+) simplifies this to `if (obj instanceof String s) { ... }`. The scoping of the pattern variable is flow-sensitive — `s` is only in scope where the compiler can prove the instanceof check succeeded. This even works with negation: `if (!(obj instanceof String s)) return; // s is in scope here`.\n\n" +
-    "Bitwise operators are rarely used in application code but sometimes appear in interviews. `&` and `|` on booleans are non-short-circuit versions of `&&` and `||` — they evaluate both sides regardless. Shift operators: `<<` is left shift, `>>` is signed right shift (preserves sign), `>>>` is unsigned right shift (fills with zeros). The modulo operator `%` preserves the sign of the dividend in Java: `-7 % 3 == -1`, not `2`. Use `Math.floorMod(-7, 3)` if you want a positive result.",
+    "## Виды приведения\n\n" +
+    "- **Identity** — к тому же типу, бесплатно.\n" +
+    "- **Widening (расширение) примитивов** — от менее ёмкого к более ёмкому: `byte → short → int → long → float → double`. Автоматически.\n" +
+    "- **Narrowing (сужение) примитивов** — требует явный cast, может потерять данные.\n" +
+    "- **Upcasting объектов** — к родителю, автоматически.\n" +
+    "- **Downcasting объектов** — к потомку, требует явный cast. Ошибка приведения → `ClassCastException`.\n" +
+    "- **Преобразование к строке** — `\"x=\" + 42` — любое значение приводится через `String.valueOf(...)`.\n\n" +
+    "## Widening с потерей точности\n\n" +
+    "> [!gotcha]\n" +
+    "> `int → float` и `long → double` — widening-преобразования (cast не нужен), но **могут потерять точность**. `int` имеет 32 бита, `float` — только 24 бита мантиссы. Значения выше 2²⁴ (16 777 216) уже не влезают. Аналогично `long` → `double` теряет точность выше 2⁵³. JLS честно называет это «widening primitive conversions that may lose information».\n\n" +
+    "## Integer promotion — главная ловушка арифметики\n\n" +
+    "В арифметических выражениях `byte`, `short`, `char` **всегда** продвигаются до `int` перед операцией. Поэтому:\n\n" +
+    "```java\n" +
+    "byte a = 1, b = 2;\n" +
+    "byte c = a + b;     // COMPILE ERROR: a + b это int\n" +
+    "byte c = (byte)(a + b);  // OK\n" +
+    "```\n\n" +
+    "Но compound assignment (`+=`, `-=` и т.д.) включает **неявный cast** согласно JLS:\n\n" +
+    "```java\n" +
+    "byte b = 127;\n" +
+    "b += 1;  // компилируется, эквивалентно b = (byte)(b + 1). b теперь -128 (overflow!)\n" +
+    "```\n\n" +
+    "> [!gotcha]\n" +
+    "> Это любимый трюковый вопрос: составные операторы молча переполняются без предупреждения компилятора.\n\n" +
+    "## == vs equals()\n\n" +
+    "- На примитивах `==` сравнивает значения.\n" +
+    "- На объектах `==` сравнивает **ссылки** (идентичность).\n" +
+    "- Со String-литералами `==` часто «кажется работающим» из-за **string pool**: `\"hello\" == \"hello\"` → true (оба в пуле). Но `new String(\"hello\") == \"hello\"` → false.\n" +
+    "- С обёртками — та же история с кэшем -128..127.\n\n" +
+    "**Всегда используйте `.equals()` для объектов.**\n\n" +
+    "## Pattern matching для instanceof (Java 16+)\n\n" +
+    "Старый код:\n\n" +
+    "```java\n" +
+    "if (obj instanceof String) {\n" +
+    "    String s = (String) obj;\n" +
+    "    System.out.println(s.length());\n" +
+    "}\n" +
+    "```\n\n" +
+    "Новый — компактнее и типобезопасен:\n\n" +
+    "```java\n" +
+    "if (obj instanceof String s) {\n" +
+    "    System.out.println(s.length());\n" +
+    "}\n" +
+    "```\n\n" +
+    "**Flow scoping** — переменная `s` видна только там, где компилятор доказал, что instanceof сработал. Работает даже с отрицанием:\n\n" +
+    "```java\n" +
+    "if (!(obj instanceof String s)) return;\n" +
+    "// s в области видимости здесь — сюда можно попасть только если instanceof сработал\n" +
+    "System.out.println(s.length());\n" +
+    "```\n\n" +
+    "В Java 21 pattern matching расширен на `switch` и записи — можно деструктурировать компоненты рекорда в одном выражении.\n\n" +
+    "## Битовые операторы и shift\n\n" +
+    "- `&`, `|`, `^` — побитовые (без short-circuit на booleans).\n" +
+    "- `&&`, `||` — short-circuit (вторая часть не вычисляется, если уже понятно).\n" +
+    "- `<<` — left shift.\n" +
+    "- `>>` — signed right shift (сохраняет знак).\n" +
+    "- `>>>` — unsigned right shift (заполняет нулями).\n\n" +
+    "## Modulo — знак сохраняется от делимого\n\n" +
+    "`-7 % 3 == -1` (а не `2`). Если нужен положительный результат — `Math.floorMod(-7, 3) == 2`.\n\n---\n\n" +
+    "## Kinds of conversions\n\n" +
+    "- **Identity** — to the same type, free.\n" +
+    "- **Widening (primitive)** — smaller to larger: `byte → short → int → long → float → double`. Implicit.\n" +
+    "- **Narrowing (primitive)** — explicit cast required, can lose data.\n" +
+    "- **Upcasting (object)** — to a parent, implicit.\n" +
+    "- **Downcasting (object)** — to a subtype, explicit cast. Mismatch → `ClassCastException`.\n" +
+    "- **String conversion** — `\"x=\" + 42` — anything is converted via `String.valueOf(...)`.\n\n" +
+    "## Widening with precision loss\n\n" +
+    "> [!gotcha]\n" +
+    "> `int → float` and `long → double` are widening (no cast needed) but **can lose precision**. `int` has 32 bits of precision; `float` only has 24 bits of mantissa. Values above 2²⁴ (16 777 216) stop fitting exactly. Same for `long → double` above 2⁵³. The JLS candidly calls these \"widening primitive conversions that may lose information\".\n\n" +
+    "## Integer promotion — the big arithmetic pitfall\n\n" +
+    "In arithmetic expressions `byte`, `short`, `char` are **always** promoted to `int` before the operation:\n\n" +
+    "```java\n" +
+    "byte a = 1, b = 2;\n" +
+    "byte c = a + b;     // COMPILE ERROR: a + b is an int\n" +
+    "byte c = (byte)(a + b);  // OK\n" +
+    "```\n\n" +
+    "But compound assignment (`+=`, `-=`, ...) includes an **implicit cast** per the JLS:\n\n" +
+    "```java\n" +
+    "byte b = 127;\n" +
+    "b += 1;  // compiles, equivalent to b = (byte)(b + 1). b is now -128 (overflow!)\n" +
+    "```\n\n" +
+    "> [!gotcha]\n" +
+    "> A favourite trick question: compound operators silently overflow with no compiler warning.\n\n" +
+    "## == vs equals()\n\n" +
+    "- On primitives, `==` compares values.\n" +
+    "- On objects, `==` compares **references** (identity).\n" +
+    "- With String literals `==` often \"seems to work\" because of the **string pool**: `\"hello\" == \"hello\"` → true. But `new String(\"hello\") == \"hello\"` → false.\n" +
+    "- With wrappers — same story via the -128..127 cache.\n\n" +
+    "**Always use `.equals()` for objects.**\n\n" +
+    "## Pattern matching for instanceof (Java 16+)\n\n" +
+    "Old code:\n\n" +
+    "```java\n" +
+    "if (obj instanceof String) {\n" +
+    "    String s = (String) obj;\n" +
+    "    System.out.println(s.length());\n" +
+    "}\n" +
+    "```\n\n" +
+    "New — shorter and type-safe:\n\n" +
+    "```java\n" +
+    "if (obj instanceof String s) {\n" +
+    "    System.out.println(s.length());\n" +
+    "}\n" +
+    "```\n\n" +
+    "**Flow scoping** — `s` is only in scope where the compiler proved the instanceof matched. Works even with negation:\n\n" +
+    "```java\n" +
+    "if (!(obj instanceof String s)) return;\n" +
+    "// s IS in scope here — the only way to reach this point is if instanceof succeeded\n" +
+    "System.out.println(s.length());\n" +
+    "```\n\n" +
+    "Java 21 extends pattern matching to `switch` and records — you can deconstruct record components in a single expression.\n\n" +
+    "## Bitwise and shift\n\n" +
+    "- `&`, `|`, `^` — bitwise (no short-circuit on booleans).\n" +
+    "- `&&`, `||` — short-circuit (second side not evaluated if unnecessary).\n" +
+    "- `<<` — left shift.\n" +
+    "- `>>` — signed right shift (preserves sign).\n" +
+    "- `>>>` — unsigned right shift (fills with zeros).\n\n" +
+    "## Modulo — sign follows the dividend\n\n" +
+    "`-7 % 3 == -1` (not `2`). For a positive result use `Math.floorMod(-7, 3) == 2`.",
   code:
     `public class OperatorsAndCastingDemo {
     public static void main(String[] args) {
@@ -78,35 +190,111 @@ export const topic: TopicContent = {
   interviewQs: [
     {
       id: "2-3-q0",
-      q: "Why does `byte b = 1; byte c = b + 1;` not compile, but `b += 1;` does?",
-      a: "In `b + 1`, the byte `b` is promoted to int (Java promotes all byte/short/char to int in arithmetic), and `1` is an int literal. The result is int, which cannot be assigned to byte without an explicit cast. So you need `byte c = (byte)(b + 1);`. However, compound assignment operators (+=, -=, etc.) include an implicit narrowing cast per the JLS. So `b += 1` is equivalent to `b = (byte)(b + 1)`. This means compound assignment can silently overflow — `byte b = 127; b += 1;` makes b equal to -128 with no compiler warning.",
+      q:
+        "Какие виды приведения типов есть в Java?\n\n---\n\n" +
+        "What kinds of type conversion does Java support?",
+      a:
+        "- **Identity** — к тому же типу.\n" +
+        "- **Widening (расширение) примитивов** — неявно: `byte → short → int → long → float → double`. Может терять точность (`int → float`, `long → double`).\n" +
+        "- **Narrowing (сужение) примитивов** — явный cast, может потерять данные.\n" +
+        "- **Upcasting объектов** — к родителю, неявно.\n" +
+        "- **Downcasting объектов** — к потомку, явный cast. Если тип несовместим → `ClassCastException`.\n" +
+        "- **String conversion** — `\"x=\" + 42`, через `String.valueOf(...)`.\n\n" +
+        "Проверка перед downcast — `instanceof`; с Java 16+ есть pattern matching: `if (obj instanceof String s) { ... }`.\n\n---\n\n" +
+        "- **Identity** — same type.\n" +
+        "- **Primitive widening** — implicit: `byte → short → int → long → float → double`. Can lose precision (`int → float`, `long → double`).\n" +
+        "- **Primitive narrowing** — explicit cast, can lose data.\n" +
+        "- **Object upcasting** — to a parent, implicit.\n" +
+        "- **Object downcasting** — to a subtype, explicit cast. Mismatch → `ClassCastException`.\n" +
+        "- **String conversion** — `\"x=\" + 42`, via `String.valueOf(...)`.\n\n" +
+        "Guard a downcast with `instanceof`; since Java 16+ use pattern matching: `if (obj instanceof String s) { ... }`.",
       difficulty: "junior",
     },
     {
       id: "2-3-q1",
-      q: "Can a widening conversion lose data? Give an example.",
-      a: "Yes. int-to-float and long-to-double are widening conversions (no cast required) but can lose precision. `int` has 32 bits of integer precision, but `float` only has 24 bits of mantissa. So any int value above 2^24 (16,777,216) may lose precision. Example: `int n = 16_777_217; float f = n;` — f becomes 16,777,216.0 because float cannot represent 16,777,217 exactly. Similarly, `long` values above 2^53 lose precision when widened to `double`. This is a subtle source of bugs in financial calculations and is why the JLS calls these 'widening primitive conversions that may lose information'.",
-      difficulty: "mid",
+      q:
+        "Почему `byte b = 1; byte c = b + 1;` не компилируется, а `b += 1;` — да?\n\n---\n\n" +
+        "Why does `byte b = 1; byte c = b + 1;` not compile, but `b += 1;` does?",
+      a:
+        "В `b + 1` `byte` продвигается до `int` (integer promotion — Java приводит `byte`/`short`/`char` к `int` в любой арифметике), а литерал `1` — уже `int`. Результат — `int`, его нельзя присвоить в `byte` без явного cast. Поэтому `byte c = (byte)(b + 1);`.\n\n" +
+        "Но составные операторы присваивания (`+=`, `-=` и т.д.) согласно JLS содержат **неявный narrowing-cast**. То есть `b += 1` эквивалентно `b = (byte)(b + 1)`. Это значит compound-assignment может молча переполниться: `byte b = 127; b += 1;` даёт `b = -128` без warning'а.\n\n---\n\n" +
+        "In `b + 1` the `byte` is promoted to `int` (integer promotion — Java widens `byte`/`short`/`char` to `int` in any arithmetic), and the literal `1` is already an `int`. The result is `int`, which can't be assigned to `byte` without an explicit cast. Hence `byte c = (byte)(b + 1);`.\n\n" +
+        "But compound assignment operators (`+=`, `-=`, ...) per the JLS carry an **implicit narrowing cast**. So `b += 1` is equivalent to `b = (byte)(b + 1)`. That means compound assignment can silently overflow: `byte b = 127; b += 1;` gives `b = -128` with no warning.",
+      difficulty: "junior",
     },
     {
       id: "2-3-q2",
-      q: "Explain how pattern matching for instanceof works with flow scoping, and how it handles complex boolean expressions.",
-      a: "Pattern matching instanceof (Java 16+) introduces a binding variable whose scope is determined by flow analysis — the variable is only in scope where the compiler can guarantee the pattern matched. `if (obj instanceof String s)` makes `s` available in the if-block. With negation: `if (!(obj instanceof String s)) return;` — after the if, `s` is in scope because the only way to reach that point is if instanceof succeeded. In boolean expressions, `&&` propagates the match: `obj instanceof String s && s.length() > 5` works because `s` is only evaluated if the instanceof succeeded. But `||` does NOT: `obj instanceof String s || s.isEmpty()` is illegal because on the right side of `||`, the instanceof might have failed. This flow-sensitive scoping also applies to switch pattern matching (Java 21) and record patterns, where you can deconstruct record components in a single expression.",
-      difficulty: "senior",
+      q:
+        "Может ли widening-преобразование потерять данные? Приведите пример.\n\n---\n\n" +
+        "Can a widening conversion lose data? Give an example.",
+      a:
+        "Да. `int → float` и `long → double` — это widening-преобразования (cast не нужен), но **могут потерять точность**.\n\n" +
+        "`int` — 32 бита точности; `float` — только 24 бита мантиссы. Любое значение выше 2²⁴ = 16 777 216 может потерять точность:\n\n" +
+        "```java\n" +
+        "int n = 16_777_217;\n" +
+        "float f = n;            // 16777216.0f — мы потеряли 1\n" +
+        "```\n\n" +
+        "Аналогично `long → double` теряет точность выше 2⁵³. Это реальный источник багов в финансовых вычислениях — JLS честно называет это «widening primitive conversions that may lose information».\n\n---\n\n" +
+        "Yes. `int → float` and `long → double` are widening (no cast required) but **can lose precision**.\n\n" +
+        "`int` has 32 bits of integer precision; `float` only has 24 bits of mantissa. Any value above 2²⁴ = 16 777 216 can lose precision:\n\n" +
+        "```java\n" +
+        "int n = 16_777_217;\n" +
+        "float f = n;            // 16777216.0f — we lost 1\n" +
+        "```\n\n" +
+        "Similarly `long → double` loses precision above 2⁵³. A real source of bugs in financial maths — the JLS honestly calls these \"widening primitive conversions that may lose information\".",
+      difficulty: "mid",
     },
     {
       id: "2-3-q3",
-      q: "Какие виды приведения типов существуют в Java?",
-      a: "В Java существуют следующие разновидности приведения типов: тождественное (identity) -- преобразование к такому же типу; расширение (повышение, upcasting) примитивного типа -- переход от менее емкого к более емкому (byte -> short -> int -> long -> float -> double); сужение (понижение, downcasting) примитивного типа -- требует явного приведения и может потерять данные; расширение объектного типа (приведение к родительскому классу); сужение объектного типа (приведение к дочернему классу); преобразование к строке. Для проверки возможности приведения объектного типа используется instanceof. При невозможном приведении выбрасывается ClassCastException.",
-      difficulty: "junior",
+      q:
+        "Как работает pattern matching для `instanceof` и flow-scoping в Java 16+?\n\n---\n\n" +
+        "How does pattern matching for `instanceof` and flow scoping work in Java 16+?",
+      a:
+        "Pattern matching `instanceof` вводит **binding-переменную**, область видимости которой определяется flow-анализом — переменная видна только там, где компилятор доказал, что паттерн сработал.\n\n" +
+        "```java\n" +
+        "if (obj instanceof String s) {\n" +
+        "    // s видна здесь\n" +
+        "}\n" +
+        "```\n\n" +
+        "С отрицанием:\n" +
+        "```java\n" +
+        "if (!(obj instanceof String s)) return;\n" +
+        "// s видна здесь — сюда можно дойти только если instanceof сработал\n" +
+        "```\n\n" +
+        "В булевых выражениях:\n" +
+        "- `obj instanceof String s && s.length() > 5` — OK, `s` доступна в правой части `&&`, т.к. до неё добираемся только при успешном match.\n" +
+        "- `obj instanceof String s || s.isEmpty()` — **ошибка**: в правой части `||` паттерн мог не сработать.\n\n" +
+        "Java 21 расширил pattern matching на `switch` и рекорды — можно деструктурировать компоненты рекорда в одном выражении.\n\n---\n\n" +
+        "Pattern matching `instanceof` introduces a **binding variable** whose scope is determined by flow analysis — it's only visible where the compiler proved the pattern matched.\n\n" +
+        "```java\n" +
+        "if (obj instanceof String s) {\n" +
+        "    // s is in scope here\n" +
+        "}\n" +
+        "```\n\n" +
+        "With negation:\n" +
+        "```java\n" +
+        "if (!(obj instanceof String s)) return;\n" +
+        "// s IS in scope here — the only way to reach this point is if instanceof succeeded\n" +
+        "```\n\n" +
+        "In boolean expressions:\n" +
+        "- `obj instanceof String s && s.length() > 5` — OK, `s` is available on the RHS of `&&`, since we only get there when the match succeeded.\n" +
+        "- `obj instanceof String s || s.isEmpty()` — **illegal**: on the RHS of `||` the pattern might not have matched.\n\n" +
+        "Java 21 extends pattern matching to `switch` and records — you can deconstruct record components in a single expression.",
+      difficulty: "senior",
     },
   ],
-  tip: "Составные операторы присваивания (+=, *=, и т.д.) содержат скрытое приведение типа. `short s = 32767; s += 1;` компилируется без ошибки и молча переполняется. Это любимый трюковый вопрос на собеседованиях.\n\n---\n\n" +
-    "The compound assignment operators (+=, *=, etc.) include a hidden cast. `short s = 32767; s += 1;` compiles without error and silently overflows. This is a favorite trick question.",
+  tip:
+    "Составные операторы присваивания (`+=`, `*=`, ...) содержат **скрытый cast**. `short s = 32767; s += 1;` компилируется и молча переполняется. Любимый трюк на собеседованиях.\n\n---\n\n" +
+    "Compound assignment (`+=`, `*=`, ...) carries a **hidden cast**. `short s = 32767; s += 1;` compiles and silently overflows. A favourite trick question.",
   springConnection: {
     concept: "Type casting and instanceof",
-    springFeature: "Spring type conversion and ConversionService",
+    springFeature: "Spring ConversionService",
     explanation:
-      "Spring's ConversionService handles type conversions that go far beyond Java's built-in casting — converting Strings to enums, dates, collections, and custom types. When you declare @Value(\"${server.port}\") int port, Spring's type conversion kicks in to parse the String property into an int. Understanding Java's native casting limitations helps you appreciate why Spring needs a separate conversion framework for property binding, request parameter mapping, and data binding.",
+      "`ConversionService` Spring'а решает задачи приведения, далеко выходящие за нативные возможности Java: `String → enum`, `String → Date`, `String → List`, любые пользовательские типы.\n\n" +
+      "Когда вы пишете `@Value(\"${server.port}\") int port`, срабатывает Spring'овый type conversion — он парсит строковое property в `int`. То же для `@RequestParam`, `@PathVariable`, data binding в формах.\n\n" +
+      "Понимание ограничений нативного Java-casting помогает ценить, зачем нужен отдельный conversion-фреймворк для property binding, mapping запросов и сериализации.\n\n---\n\n" +
+      "Spring's `ConversionService` handles conversions that go well beyond Java's built-in casting: `String → enum`, `String → Date`, `String → List`, any user-defined types.\n\n" +
+      "When you write `@Value(\"${server.port}\") int port`, Spring's type conversion parses the String property into an `int`. Same for `@RequestParam`, `@PathVariable`, and form data binding.\n\n" +
+      "Understanding the limits of native Java casting makes clear why Spring needs a separate conversion framework for property binding, request mapping, and serialisation.",
   },
 };
