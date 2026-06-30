@@ -24,4 +24,21 @@ describe("validateTopic", () => {
     expect(r.errors).toEqual([]);
     expect(r.warnings.length).toBeGreaterThan(0);
   });
+  it("errors on invalid difficulty when published", () => {
+    const bad = {
+      ...base,
+      interviewQs: [{ ...base.interviewQs[0], difficulty: "expert" as "junior" }],
+    };
+    const r = validateTopic(bad, "published");
+    expect(r.errors).toContain("x: interviewQs[0].difficulty invalid: expert");
+  });
+  it("downgrades invalid difficulty to warning when draft", () => {
+    const bad = {
+      ...base,
+      interviewQs: [{ ...base.interviewQs[0], difficulty: "expert" as "junior" }],
+    };
+    const r = validateTopic(bad, "draft");
+    expect(r.errors).toEqual([]);
+    expect(r.warnings).toContain("x: interviewQs[0].difficulty invalid: expert");
+  });
 });

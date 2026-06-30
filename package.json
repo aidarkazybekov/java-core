@@ -16,7 +16,10 @@
     "snapshot-baseline": "tsx scripts/snapshot-baseline.ts",
     "migrate-content": "tsx scripts/migrate-to-vault.ts",
     "predev": "npm run compile-content",
-    "prebuild": "npm run compile-content"
+    "prebuild": "npm run compile-content",
+    "pretest": "npm run compile-content",
+    "prelint": "npm run compile-content",
+    "typecheck": "npm run compile-content && tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
