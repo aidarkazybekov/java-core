@@ -43,6 +43,7 @@ function main() {
   for (const enPath of enNotes) {
     const enRaw = readFileSync(enPath, "utf8");
     const fm = matter(enRaw).data;
+    if (!fm.id || fm.id === "BLOCK-N") continue; // skip non-topic files (README, templates)
     const id = String(fm.id);
     const status = (fm.status === "published" ? "published" : "draft") as "published" | "draft";
     const ruPath = join(enPath, "..", "ru", `${id}.md`);
