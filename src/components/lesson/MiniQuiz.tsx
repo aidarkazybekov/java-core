@@ -19,7 +19,6 @@ export default function MiniQuiz({
 }: {
   questions: InterviewQuestion[];
   onRate: (id: string, quality: number) => void;
-  locale: "ru" | "en";
   anchorRef?: React.Ref<HTMLDivElement>;
 }) {
   const { locale } = useLocale();
@@ -49,7 +48,7 @@ export default function MiniQuiz({
                   onClick={() => setRevealed((p) => new Set(p).add(q.id))}
                   className="text-[11px] text-accent-green hover:underline"
                 >
-                  {t("reveal", locale)}
+                  {locale === "ru" ? "▶ показать" : "▶ reveal"}
                 </button>
               ) : (
                 <>

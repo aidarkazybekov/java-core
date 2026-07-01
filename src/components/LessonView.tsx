@@ -76,7 +76,7 @@ export default function LessonView({
       {vis.has("spring") && content.springConnection && <SpringTab content={content} />}
       {vis.has("glossary") && <Glossary terms={kt} locale={locale} />}
       <CompletionNudge locale={locale} onStart={toQuiz} />
-      <MiniQuiz questions={content.interviewQs} onRate={onRate} locale={locale} anchorRef={quizRef} />
+      <MiniQuiz questions={content.interviewQs} onRate={onRate} anchorRef={quizRef} />
     </div>
   );
 }
