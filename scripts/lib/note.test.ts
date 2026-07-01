@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { serializeNote, parseNotePair } from "./note";
 import type { NormTopic } from "./norm";
+import type { NormTopic as NT2 } from "./norm";
 
 const n: NormTopic = {
   id: "1-1",
@@ -35,5 +36,36 @@ describe("note serialize/parse round-trip", () => {
     expect(back.diagram).toBe("jvm-architecture");
     expect(back.blockId).toBe(1);
     expect(back.id).toBe("1-1");
+  });
+});
+
+describe("note round-trip with new optional sections", () => {
+  const n: NT2 = {
+    id: "1-1", blockId: 1, diagram: "jvm-architecture",
+    title: { ru: "JVM", en: "JVM" }, summary: { ru: "с", en: "s" },
+    deepDive: { ru: "г", en: "d" }, tip: { ru: "т", en: "t" }, code: "class A {}",
+    interviewQs: [{ id: "1-1-q1", difficulty: "mid", q: { ru: "в", en: "q" }, a: { ru: "о", en: "a" } }],
+    spring: null,
+    tldr: { ru: "кратко\n\nдве строки", en: "short\n\ntwo lines" },
+    analogy: { ru: "аналогия", en: "analogy" },
+    whatWhy: { ru: "чч", en: "ww" },
+    howItWorks: { ru: "## Внутри\nтекст", en: "## Inside\ntext" },
+    gotcha: { ru: "подвох", en: "gotcha" },
+    recap: { ru: "итог", en: "recap" },
+    checkpoints: [{ id: "cp1", prompt: { ru: "вопрос", en: "prompt" }, answer: { ru: "ответ", en: "answer" } }],
+    keyTerms: [{ term: "treeify", definition: { ru: "дерево\n\nвторая строка", en: "tree it\n\nsecond line" } }],
+  };
+
+  it("preserves all new sections", () => {
+    const { en, ru } = serializeNote(n, "java-core", "draft");
+    const back = parseNotePair(en, ru);
+    expect(back.tldr).toEqual(n.tldr);
+    expect(back.analogy).toEqual(n.analogy);
+    expect(back.whatWhy).toEqual(n.whatWhy);
+    expect(back.howItWorks).toEqual(n.howItWorks);  // has an inner ## heading
+    expect(back.gotcha).toEqual(n.gotcha);
+    expect(back.recap).toEqual(n.recap);
+    expect(back.checkpoints).toEqual(n.checkpoints);
+    expect(back.keyTerms).toEqual(n.keyTerms);
   });
 });
