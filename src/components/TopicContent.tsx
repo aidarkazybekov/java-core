@@ -1,14 +1,13 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { TopicContent as TopicContentType, ProgressState } from "@/lib/types";
 import { localized, useLocale } from "@/lib/i18n";
 import { estimateReadingMinutes } from "@/lib/reading-time";
-import LearnTab from "./LearnTab";
-import CodeTab from "./CodeTab";
-import InterviewTab from "./InterviewTab";
-import SpringTab from "./SpringTab";
+import LessonView from "./LessonView";
+import DepthControl from "./lesson/DepthControl";
+import { resolveTopic } from "@/lib/resolve-topic";
+import type { Depth } from "@/lib/depth";
 import ReadingProgress from "./ReadingProgress";
 import TableOfContents from "./TableOfContents";
 import StudyStats from "./StudyStats";
@@ -20,15 +19,6 @@ interface TopicNav {
   blockTitle: string;
   blockIcon: string;
 }
-
-const TABS = [
-  { id: "learn", label: "📖 Learn" },
-  { id: "code", label: "💻 Code" },
-  { id: "interview", label: "🎯 Interview" },
-  { id: "spring", label: "🌱 Spring" },
-] as const;
-
-export type TabId = (typeof TABS)[number]["id"];
 
 interface TopicContentProps {
   content: TopicContentType;
@@ -45,8 +35,8 @@ interface TopicContentProps {
   progress: ProgressState;
   onMarkDone: () => void;
   onRate: (questionId: string, quality: number) => void;
-  activeTab: TabId;
-  onTabChange: (t: TabId) => void;
+  depth: Depth;
+  onDepthChange: (d: Depth) => void;
 }
 
 export default function TopicContentView({
@@ -64,18 +54,19 @@ export default function TopicContentView({
   onMarkDone,
   onRate,
   onNavigate,
-  activeTab,
-  onTabChange,
+  depth,
+  onDepthChange,
 }: TopicContentProps) {
   const { locale } = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const deepDiveMd = localized(content.deepDive, locale);
-  const showToc = activeTab === "learn";
+  const resolved = resolveTopic(content);
+  const deepDiveMd = localized(resolved.howItWorks, locale);
+  const showToc = true;
   const readingMinutes = estimateReadingMinutes(
-    content.summary,
-    content.deepDive,
-    content.tip
+    resolved.tldr,
+    resolved.howItWorks,
+    resolved.gotcha ?? ""
   );
 
   const blockLabel =
@@ -129,49 +120,19 @@ export default function TopicContentView({
                 </button>
               </div>
             </div>
-            <div
-              role="tablist"
-              aria-label={locale === "ru" ? "Разделы темы" : "Topic sections"}
-              className="flex gap-1 -mb-px px-4 sm:px-7"
-            >
-              {TABS.map((tab, i) => (
-                <button
-                  key={tab.id}
-                  role="tab"
-                  aria-selected={activeTab === tab.id}
-                  aria-label={`${tab.label} (${i + 1})`}
-                  onClick={() => onTabChange(tab.id)}
-                  className={`px-4 py-2 text-xs transition-all border-b-2 ${
-                    activeTab === tab.id
-                      ? "text-accent-green border-accent-green"
-                      : "text-text-muted border-transparent hover:text-text-secondary"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="flex items-center gap-2 px-4 sm:px-7 pb-2">
+              <DepthControl depth={depth} onChange={onDepthChange} locale={locale} />
             </div>
           </div>
 
           <div className="pt-6 pb-7">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-              >
-                {activeTab === "learn" && <LearnTab content={content} />}
-                {activeTab === "code" && (
-                  <CodeTab content={content} highlightedCode={highlightedCode} />
-                )}
-                {activeTab === "interview" && (
-                  <InterviewTab content={content} progress={progress} onRate={onRate} />
-                )}
-                {activeTab === "spring" && <SpringTab content={content} />}
-              </motion.div>
-            </AnimatePresence>
+            <LessonView
+              content={content}
+              highlightedCode={highlightedCode}
+              progress={progress}
+              onRate={onRate}
+              depth={depth}
+            />
 
             {onNavigate && (prevTopic || nextTopic) && (
               <nav
