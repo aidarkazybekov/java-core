@@ -8,7 +8,8 @@ import { updateSRState, getDueCards } from "@/lib/spaced-repetition";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { ROADMAP } from "@/data/roadmap";
 import Sidebar from "@/components/Sidebar";
-import TopicContentView, { TabId } from "@/components/TopicContent";
+import TopicContentView from "@/components/TopicContent";
+import { useDepth } from "@/lib/use-depth";
 import AskDeeper from "@/components/AskDeeper";
 import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
 import StudySessionOverlay from "@/components/StudySessionOverlay";
@@ -46,7 +47,7 @@ export default function TopicClient({
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>("learn");
+  const [depth, setDepth] = useDepth();
   const lastGAt = useRef<number | null>(null);
   const isMobile = useMediaQuery("(max-width: 767px)");
 
@@ -112,10 +113,9 @@ export default function TopicClient({
         router.push(`/topic/${nextTopic.id}`);
         return;
       }
-      if (e.key === "1") setActiveTab("learn");
-      else if (e.key === "2") setActiveTab("code");
-      else if (e.key === "3") setActiveTab("interview");
-      else if (e.key === "4") setActiveTab("spring");
+      if (e.key === "1") setDepth("quick");
+      else if (e.key === "2") setDepth("standard");
+      else if (e.key === "3") setDepth("deep");
 
       // g h chord → home
       if (e.key === "g") {
@@ -133,7 +133,7 @@ export default function TopicClient({
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [prevTopic, nextTopic, router, shortcutsOpen]);
+  }, [prevTopic, nextTopic, router, shortcutsOpen, setDepth]);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -182,8 +182,8 @@ export default function TopicClient({
           onMarkDone={handleMarkDone}
           onRate={handleRate}
           onNavigate={handleSelectTopic}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
+          depth={depth}
+          onDepthChange={setDepth}
         />
         <AskDeeper topicTitle={content.title} content={content} />
       </div>
